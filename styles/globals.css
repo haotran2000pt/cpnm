@@ -10,10 +10,10 @@ html {
   font-family: "Quicksand", sans-serif;
 }
 
-input,
-button,
-select {
-  @apply focus:outline-none;
+input:focus,
+button:focus,
+select:focus {
+  outline: none !important;
 }
 
 button::active {

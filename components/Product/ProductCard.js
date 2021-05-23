@@ -2,16 +2,19 @@ import Link from 'next/link'
 import { FiHeart } from 'react-icons/fi'
 import { BiCartAlt } from 'react-icons/bi'
 import { AiFillStar } from 'react-icons/ai'
+import LazyLoad from 'react-lazyload'
 
 export default function ProductCard() {
     return <div className="w-1/5 px-2 mb-4 group select-none">
         <div className="bg-gray-100 p-5 relative">
             <Link href="/product/5">
                 <a className="h-52 mb-4 flex items-center justify-center group-hover:scale-105 transform transition-transform duration-500">
-                    <img className="h-36 w-auto object-contain"
-                        src="https://hoanghamobile.com/i/preview/Uploads/2021/01/22/image-removebg-preview.png"
-                        alt="product"
-                    />
+                    <LazyLoad height={144}>
+                        <img className="h-36 w-auto object-contain"
+                            src="https://hoanghamobile.com/i/preview/Uploads/2021/01/22/image-removebg-preview.png"
+                            alt="product"
+                        />
+                    </LazyLoad>
                 </a>
             </Link>
             <div>
