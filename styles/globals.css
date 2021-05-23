@@ -1,0 +1,53 @@
+@import url("https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Roboto");
+@import url("https://fonts.googleapis.com/css2?family=Inter");
+@import "~react-image-gallery/styles/css/image-gallery.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  font-family: "Quicksand", sans-serif;
+}
+
+input,
+button,
+select {
+  @apply focus:outline-none;
+}
+
+button::active {
+  @apply outline-none;
+}
+
+.font-inter {
+  font-family: Inter, san-serif;
+}
+
+.font-roboto {
+  font-family: Roboto, san-serif;
+}
+
+*:focus-visible {
+  @apply outline-none;
+}
+
+.ReactCollapse--collapse {
+  transition: height 100ms;
+}
+
+.swiper-button-prev,
+.swiper-button-next {
+  color: rgb(40, 40, 40);
+}
+
+.hide-number-type-arrow::-webkit-outer-spin-button,
+.hide-number-type-arrow::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.hide-number-type-arrow[type="number"] {
+  -moz-appearance: textfield;
+}
