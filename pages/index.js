@@ -1,40 +1,37 @@
 import Head from 'next/head'
 import Image from 'next/image'
 import Layout from '../layouts/Layout'
-import { SiApple, SiHuawei, SiLg, SiOneplus, SiSamsung, SiXiaomi } from 'react-icons/si'
-import SeeAllButton from '../components/SeeAllButton'
 import ProductCard from '../components/Product/ProductCard'
 import HeroBanner from '../components/Banner/HeroBanner'
-import { FiHeadphones, FiSmartphone } from 'react-icons/fi'
-import { MdPayment, MdSmartphone, MdTablet } from 'react-icons/md'
+import { FiHeadphones } from 'react-icons/fi'
+import { MdSmartphone } from 'react-icons/md'
 import { AiOutlineCamera, AiOutlineTablet } from 'react-icons/ai'
-import { IoReturnUpBackOutline, IoWatch, IoWatchOutline } from 'react-icons/io5'
-import { RiShieldCheckLine, RiTruckLine } from 'react-icons/ri'
+import { IoWatchOutline } from 'react-icons/io5'
 import Banner from '../components/Banner/Banner'
 
 export default function Home() {
   return (
     <Layout noPadding aboveComponent={<HeroBanner />}>
       <div className="space-x-10 flex mb-4 justify-center">
-        <button className="w-32 h-24 bg-gray-100 flex flex-col items-center justify-center rounded group">
-          <MdSmartphone className="text-gray-700 mb-1 group-hover:scale-125 transform transition-transform duration-300" size={33} />
-          <div className="text-gray-800">Điện thoại</div>
+        <button className="w-32 h-24 bg-gray-100 flex flex-col items-center justify-center rounded hover:shadow-lg hover:bg-dark hover:text-white transition-all">
+          <MdSmartphone className="mb-1" size={33} />
+          <div className="font-medium text-sm">Điện thoại</div>
         </button>
-        <button className="w-32 h-24 bg-gray-100 flex flex-col items-center justify-center rounded group">
-          <AiOutlineTablet className="text-gray-700 mb-1 group-hover:scale-125 transform transition-transform duration-300" size={33} />
-          <div className="text-gray-800">Máy tính bảng</div>
+        <button className="w-32 h-24 bg-gray-100 flex flex-col items-center justify-center rounded hover:shadow-lg hover:bg-dark hover:text-white transition-all">
+          <AiOutlineTablet className="mb-1" size={33} />
+          <div className="font-medium text-sm">Máy tính bảng</div>
         </button>
-        <button className="w-32 h-24 bg-gray-100 flex flex-col items-center justify-center rounded group">
-          <FiHeadphones className="text-gray-700 mb-1 group-hover:scale-125 transform transition-transform duration-300" size={33} />
-          <div className="text-gray-800">Tai nghe</div>
+        <button className="w-32 h-24 bg-gray-100 flex flex-col items-center justify-center rounded hover:shadow-lg hover:bg-dark hover:text-white transition-all">
+          <FiHeadphones className="mb-1" size={33} />
+          <div className="font-medium text-sm">Tai nghe</div>
         </button>
-        <button className="w-32 h-24 bg-gray-100 flex flex-col items-center justify-center rounded group">
-          <IoWatchOutline className="text-gray-700 mb-1 group-hover:scale-125 transform transition-transform duration-300" size={33} />
-          <div className="text-gray-800">Smartwatch</div>
+        <button className="w-32 h-24 bg-gray-100 flex flex-col items-center justify-center rounded hover:shadow-lg hover:bg-dark hover:text-white transition-all">
+          <IoWatchOutline className="mb-1" size={33} />
+          <div className="font-medium text-sm">Smartwatch</div>
         </button>
-        <button className="w-32 h-24 bg-gray-100 flex flex-col items-center justify-center rounded group">
-          <AiOutlineCamera className="text-gray-700 mb-1 group-hover:scale-125 transform transition-transform duration-300" size={33} />
-          <div className="text-gray-800">Máy ảnh</div>
+        <button className="w-32 h-24 bg-gray-100 flex flex-col items-center justify-center rounded hover:shadow-lg hover:bg-dark hover:text-white transition-all">
+          <AiOutlineCamera className="mb-1" size={33} />
+          <div className="font-medium text-sm">Máy ảnh</div>
         </button>
       </div>
       <div className="mb-4">

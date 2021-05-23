@@ -1,6 +1,6 @@
 import classNames from "classnames";
 
-export default function Input({ label, id, labelClasses, inputClasses, noBorder, ...inputProps }) {
+export default function Input({ label, id, labelClasses, inputClasses, noBorder, onChange, ...inputProps }) {
     return (
         <div className="mb-2">
             {label && (
@@ -13,6 +13,7 @@ export default function Input({ label, id, labelClasses, inputClasses, noBorder,
                     className={classNames('w-full p-2 text-sm', inputClasses, {
                         'border border-black': !noBorder,
                     })}
+                    onChange={onChange}
                     {...inputProps} />
             </div>
         </div>

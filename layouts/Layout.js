@@ -1,6 +1,6 @@
 import classNames from "classnames";
 import Footer from "../components/Footer";
-import Header from "../components/Header";
+import Header from "../components/Header/Header";
 
 export default function Layout({ children, aboveComponent }) {
     return <div>

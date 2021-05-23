@@ -1,15 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
 import { AiOutlineAppstore, AiOutlineHeart, AiOutlineSearch, AiOutlineShopping, AiOutlineUser } from 'react-icons/ai'
-import BetterReactModal from './common/BetterReactModal'
+import BetterReactModal from '../common/BetterReactModal'
 import Link from 'next/link'
-import AuthForm from './AuthForm/AuthForm'
-import Category from './CategoryDropdown'
-import { Collapse } from 'react-collapse'
+import AuthForm from '../AuthForm/AuthForm'
+import { UnmountClosed } from 'react-collapse'
 import classNames from 'classnames'
-import useOnClickOutside from '../hooks/useOnClickOutside'
-import CheckoutDrawer from './Checkout/CheckoutDrawer'
-import { CSSTransition, Transition } from 'react-transition-group'
-import axios from 'axios'
+import useOnClickOutside from '../../hooks/useOnClickOutside'
+import CheckoutDrawer from '../Checkout/CheckoutDrawer'
+import { Transition } from 'react-transition-group'
+import { useAuth } from '../../lib/auth'
+import CategoryDropdown from './CategoryDropdown'
+import UserMenu from './UserMenu'
 
 const transitionStyles = {
     entering: { opacity: 1 },
@@ -22,24 +23,43 @@ export default function Header() {
     const [login, setLogin] = useState(false)
     const [showCategory, setShowCategory] = useState(false)
     const [showCheckout, setShowCheckout] = useState(false)
+    const [showUserMenu, setShowUserMenu] = useState(false)
+    const { auth, loading } = useAuth()
 
     const categoriesRef = useRef(null)
+    const userMenuRef = useRef(null)
 
     const handleClickOutsideCategory = () => {
         if (showCategory)
             setShowCategory(false)
     }
 
+    const handleClickOutsideUserMenu = () => {
+        if (showUserMenu)
+            setShowUserMenu(false)
+    }
+
     useOnClickOutside(categoriesRef, handleClickOutsideCategory)
+    useOnClickOutside(userMenuRef, handleClickOutsideUserMenu)
 
     const handleOpenLogin = e => {
         e.preventDefault()
-        setLogin(true)
+        if (!auth)
+            setLogin(true)
+        else
+            setShowUserMenu(!showUserMenu)
     }
 
     const handleCloseLogin = () => {
         setLogin(false)
     }
+
+    useEffect(() => {
+        if (auth && showCategory)
+            setShowCategory(false)
+        if (!auth && showUserMenu)
+            setShowUserMenu(false)
+    }, [auth])
 
     return (
         <>
@@ -71,9 +91,9 @@ export default function Header() {
                         <div className={classNames('absolute bg-white top-full w-60 translate-y-px transform', {
                             'invisible transition-all duration-100': !showCategory
                         })}>
-                            <Collapse isOpened={showCategory}>
-                                <Category />
-                            </Collapse>
+                            <UnmountClosed isOpened={showCategory}>
+                                <CategoryDropdown />
+                            </UnmountClosed>
                         </div>
                     </div>
                 </div>
@@ -89,17 +109,27 @@ export default function Header() {
                         <AiOutlineShopping />
                         <span className="text-xs mt-auto ml-1 font-bold">0</span>
                     </button>
-                    <button className="mr-5 flex">
-                        <AiOutlineHeart />
-                        <span className="text-xs mt-auto ml-1 font-bold">0</span>
-                    </button>
-                    <button onClick={handleOpenLogin}>
-                        <AiOutlineUser />
-                    </button>
+                    {auth && (
+                        <button className="mr-5 flex">
+                            <AiOutlineHeart />
+                            <span className="text-xs mt-auto ml-1 font-bold">0</span>
+                        </button>
+                    )}
+                    <div ref={userMenuRef} className="flex">
+                        <button onClick={handleOpenLogin}>
+                            <AiOutlineUser />
+                        </button>
+                        <div className="absolute top-full right-16">
+                            <UnmountClosed isOpened={showUserMenu && auth}>
+                                <UserMenu />
+                            </UnmountClosed>
+                        </div>
+                    </div>
                 </div>
                 <BetterReactModal
-                    isOpen={login}
+                    isOpen={login && !auth}
                     onClose={handleCloseLogin}
+                    preventClose={loading}
                 >
                     <AuthForm modalClose={handleCloseLogin} />
                 </BetterReactModal>

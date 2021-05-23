@@ -50,3 +50,15 @@ button::active {
 .hide-number-type-arrow[type="number"] {
   -moz-appearance: textfield;
 }
+
+.btn {
+  @apply w-full border-2 p-2 transition-colors font-medium;
+}
+
+.btn.dark {
+  @apply bg-dark text-white border-transparent hover:border-dark hover:text-black hover:bg-white;
+}
+
+.btn.white {
+  @apply bg-white border-dark hover:bg-dark hover:text-white;
+}
