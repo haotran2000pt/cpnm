@@ -38,10 +38,12 @@ export default function RegisterForm() {
                 id="password"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
+                type="password"
             />
             <Input
                 label="Xác nhận mật khẩu"
                 id="confirm-password"
+                type="password"
             />
             <Button onClick={handleRegister} loading={loading} className="mt-2">
                 ĐĂNG KÝ

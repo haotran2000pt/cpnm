@@ -36,6 +36,7 @@ export default function LoginForm() {
                 id="password"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
+                type="password"
             />
             <div className="text-right">
                 <Link href='/forgot-password'>

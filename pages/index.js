@@ -8,8 +8,21 @@ import { MdSmartphone } from 'react-icons/md'
 import { AiOutlineCamera, AiOutlineTablet } from 'react-icons/ai'
 import { IoWatchOutline } from 'react-icons/io5'
 import Banner from '../components/Banner/Banner'
+import axios from 'axios'
 
-export default function Home() {
+export async function getStaticProps({ }) {
+  const categories = await axios.get('/api/categories')
+  console.log(categories)
+  return {
+    props: {
+      categories
+    },
+    revalidate: 10000
+  }
+}
+
+export default function Home({ categories }) {
+  console.log(categories)
   return (
     <Layout noPadding aboveComponent={<HeroBanner />}>
       <div className="space-x-10 flex mb-4 justify-center">
