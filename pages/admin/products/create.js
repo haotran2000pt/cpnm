@@ -17,7 +17,7 @@ const schema = yup.object().shape({
     description: yup.string().required().min(50).max(2000),
     // quantity: yup.number().min(0).required(),
     slug: yup.string().required().min(5),
-    discount: yup.number().required().min(0)
+    discount: yup.number().required().min(0).max(100)
 })
 
 export default function ProductCreate() {

@@ -22,19 +22,7 @@ import { useRouter } from "next/router";
 
 SwiperCore.use([Thumbs]);
 
-export async function getStaticPaths() {
-    const products = await firebaseAdmin.firestore().collection('products').get()
-    const paths = products.docs.map(product => ({
-        params: { pid: product.data().slug }
-    }))
-
-    return {
-        paths,
-        fallback: false
-    }
-}
-
-export async function getStaticProps({ params }) {
+export async function getServerSideProps({ params }) {
     const res = await firebaseAdmin.firestore().collection('products').where("slug", "==", params.pid).get()
     const product = { id: res.docs[0].id, ...res.docs[0].data() }
     const ratingsSnapshot = await firebaseAdmin
