@@ -1,24 +1,27 @@
 import { Swiper, SwiperSlide } from 'swiper/react'
 import SwiperCore, { Navigation, Autoplay } from 'swiper';
 import Link from 'next/link';
-
+import Image from 'next/image';
 
 SwiperCore.use([Navigation, Autoplay]);
 
 const banners = [{
-    imgUrl: "https://live.hasthemes.com/html/5/abelo-preview/abelo/assets/images/slider-image/sample-1.jpg",
-    href: "/a",
-    alt: "sad",
+    imgUrl: "/iphone_12_banner.jpg",
+    width: 1024,
+    height: 536,
+    slug: "/iphone-12-pro",
     color: "black"
 }, {
-    imgUrl: "https://cdn.tgdd.vn/2021/05/banner/big-samsung-830-300-830x300.png",
-    href: "/s",
-    alt: "sad",
+    imgUrl: "/xiaomi11-banner.jpg",
+    width: 1200,
+    height: 675,
+    slug: "/xiaomi-11i",
     color: "black"
 }, {
-    imgUrl: "https://assorted.downloads.oppo.com/static/archives/images/dd/Smartphones/Reno3%20Pro/homepage-largebanner-pc-black-white.png",
-    href: "/d",
-    alt: "sad",
+    imgUrl: "/samsung-galaxy-note-20-banner.jpg",
+    width: 122,
+    height: 231,
+    slug: "/samsung-galaxy-note-20",
     color: "black"
 }]
 
@@ -32,10 +35,10 @@ export default function HeroBanner() {
             autoHeight={true}
         >
             {banners.map(banner => (
-                <SwiperSlide key={banner.alt}>
-                    <Link href={banner.href}>
+                <SwiperSlide key={banner.imgUrl}>
+                    <Link href={'/san-pham' + banner.slug}>
                         <a style={{ backgroundColor: banner.color }}>
-                            <img className="w-full" src={banner.imgUrl} alt={banner.alt} />
+                            <img src={banner.imgUrl} alt={banner.alt} />
                         </a>
                     </Link>
                 </SwiperSlide>

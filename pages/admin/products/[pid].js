@@ -35,7 +35,7 @@ const schema = yup.object().shape({
     price: yup.number().min(1000).required(),
     name: yup.string().required().min(5),
     description: yup.string().required().min(50).max(2000),
-    quantity: yup.number().min(0).required(),
+    // quantity: yup.number().min(0).required(),
     slug: yup.string().required().min(5),
     discount: yup.number().required().min(0)
 })

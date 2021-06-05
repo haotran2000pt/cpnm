@@ -83,9 +83,9 @@ export default function Home({ saleProducts, newProducts, featuredProducts }) {
       </div>
       <Banner
         item={{
-          src: 'https://macad.vn/upload/banner-watch-seri4.jpg',
-          alt: 'Apple Watch Series 6 banner',
-          href: '/'
+          src: '/ipad-pro2020-banner.jpg',
+          alt: 'iPad Pro 2020 banner',
+          href: '/san-pham/ipad-pro-2020'
         }}
         className="my-3"
       />
