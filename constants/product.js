@@ -1,0 +1,1 @@
+export const productStatus = ["Chờ xác nhận", "Đã xác nhận", "Đang giao hàng", "Đã giao", "Hủy"]

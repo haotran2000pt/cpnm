@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import SwiperCore, { Thumbs, Navigation } from 'swiper/core';
-import classNames from 'classnames';
 
 SwiperCore.use([Thumbs, Navigation]);
 
@@ -9,16 +8,15 @@ export default function ProductImageGallery({ images }) {
     const [thumbsSwiper, setThumbsSwiper] = useState(null);
 
     return (
-        <div className="h-full">
+        <div className="">
             <Swiper
                 className="mb-4"
-                autoHeight={true}
                 thumbs={{ swiper: thumbsSwiper }}
                 lazy={true}
             >
                 {images.map(image => (
                     <SwiperSlide>
-                        <img className="mx-auto" src={image.src} />
+                        <img className="mx-auto h-96" src={image} alt="product image" />
                     </SwiperSlide>
                 ))}
             </Swiper>
@@ -35,7 +33,7 @@ export default function ProductImageGallery({ images }) {
                     {images.map(image => (
                         <SwiperSlide>
                             <div className='h-24 border p-2 hover:border-blue-500 cursor-pointer'>
-                                <img className='mx-auto h-full w-auto object-contain' src={image.src} />
+                                <img className='mx-auto h-full w-auto object-contain' src={image} />
                             </div>
                         </SwiperSlide>
                     ))}

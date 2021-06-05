@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { IoSad } from "react-icons/io5";
-import Button from "../components/common/Button";
 import Layout from "../layouts/Layout";
 
 export default function Custom404() {

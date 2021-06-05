@@ -1,36 +1,23 @@
 import Link from "next/link";
+import { categories } from "../../constants/category";
 
-const Categories = [{
-    href: "/asd",
-    text: "Điện thoại"
-}, {
-    href: "/asd",
-    text: "Máy tính bảng"
-}, {
-    href: "/asd",
-    text: "Tai nghe"
-}, {
-    href: "/asd",
-    text: "Smartwatch"
-}, {
-    href: "/asd",
-    text: "Máy ảnh"
-}
-]
+export default function CategoryDropdown({ closeHandler }) {
 
-export default function CategoryDropdown() {
     return (
         <nav className="shadow-md">
             <ul>
-                {Categories.map((category) => (
-                    <li>
-                        <Link href={category.href}>
-                            <a className="p-2 px-3 w-full block hover:bg-dark hover:text-white font-medium">
-                                {category.text}
-                            </a>
-                        </Link>
-                    </li>
-                ))}
+                {Object.keys(categories).map((catId) => {
+                    const category = categories[catId]
+                    return (
+                        <li key={catId + 'headerlink'}>
+                            <Link href={'/' + catId}>
+                                <a onClick={closeHandler} className="p-2 px-3 w-full block hover:bg-dark hover:text-white font-medium">
+                                    {category.name}
+                                </a>
+                            </Link>
+                        </li>
+                    )
+                })}
             </ul>
         </nav>
     )

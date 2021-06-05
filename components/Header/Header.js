@@ -7,10 +7,12 @@ import { UnmountClosed } from 'react-collapse'
 import classNames from 'classnames'
 import useOnClickOutside from '../../hooks/useOnClickOutside'
 import CheckoutDrawer from '../Checkout/CheckoutDrawer'
+import WishlistDrawer from '../Wishlist/WishlistDrawer'
 import { Transition } from 'react-transition-group'
 import { useAuth } from '../../lib/auth'
 import CategoryDropdown from './CategoryDropdown'
 import UserMenu from './UserMenu'
+import { useCart } from '../../contexts/cart'
 
 const transitionStyles = {
     entering: { opacity: 1 },
@@ -23,8 +25,10 @@ export default function Header() {
     const [login, setLogin] = useState(false)
     const [showCategory, setShowCategory] = useState(false)
     const [showCheckout, setShowCheckout] = useState(false)
+    const [showWishlist, setShowWishList] = useState(false)
     const [showUserMenu, setShowUserMenu] = useState(false)
-    const { auth, loading } = useAuth()
+    const { auth, loading, creating } = useAuth()
+    const { items } = useCart()
 
     const categoriesRef = useRef(null)
     const userMenuRef = useRef(null)
@@ -51,7 +55,8 @@ export default function Header() {
     }
 
     const handleCloseLogin = () => {
-        setLogin(false)
+        if (!loading)
+            setLogin(false)
     }
 
     useEffect(() => {
@@ -74,7 +79,8 @@ export default function Header() {
                 )}
             </Transition>
             <header className="border-b flex py-2 px-24 sticky top-0 z-40 bg-white">
-                <CheckoutDrawer isOpen={showCheckout} onClose={() => setShowCheckout(false)} width={350} placement="right" />
+                <CheckoutDrawer isOpen={showCheckout} onClose={() => setShowCheckout(false)} />
+                <WishlistDrawer isOpen={showWishlist} onClose={() => setShowWishList(false)} />
                 <div className="flex-1 flex items-center">
                     <Link href="/">
                         <a className="mr-4">
@@ -92,27 +98,36 @@ export default function Header() {
                             'invisible transition-all duration-100': !showCategory
                         })}>
                             <UnmountClosed isOpened={showCategory}>
-                                <CategoryDropdown />
+                                <CategoryDropdown closeHandler={() => setShowCategory(false)} />
                             </UnmountClosed>
                         </div>
                     </div>
                 </div>
-                <div className="flex-1 flex focus-within:shadow-md transition-shadow">
-                    <input className="flex-1 p-2 text-sm bg-gray-100 bg-opacity-75"
+                <form action='/search' className="flex-1 flex focus-within:shadow-md transition-shadow">
+                    <input name="key"
+                        className="flex-1 p-2 text-sm bg-gray-100 bg-opacity-75"
                         placeholder="Tìm kiếm sản phẩm..." />
                     <button className="flex-shrink-0 p-2 flex items-center justify-center bg-dark text-white">
                         <AiOutlineSearch size={22} />
                     </button>
-                </div>
+                </form>
                 <div className="flex-1 flex items-center justify-end text-2xl">
+                    <Link href="/kiem-tra-don-hang">
+                        <a className="inline-block mr-5 text-sm font-medium">
+                            Kiểm tra đơn hàng
+                        </a>
+                    </Link>
                     <button onClick={() => setShowCheckout(true)} className="mr-5 flex">
                         <AiOutlineShopping />
-                        <span className="text-xs mt-auto ml-1 font-bold">0</span>
+                        <span className="text-xs mt-auto ml-1 font-bold">
+                            {items.reduce((acc, cur) => {
+                                return acc + cur.quantity
+                            }, 0)}
+                        </span>
                     </button>
-                    {auth && (
-                        <button className="mr-5 flex">
+                    {auth && !creating && (
+                        <button onClick={() => setShowWishList(true)} className="mr-5 flex">
                             <AiOutlineHeart />
-                            <span className="text-xs mt-auto ml-1 font-bold">0</span>
                         </button>
                     )}
                     <div ref={userMenuRef} className="flex">
@@ -127,9 +142,9 @@ export default function Header() {
                     </div>
                 </div>
                 <BetterReactModal
-                    isOpen={login && !auth}
+                    isOpen={(login && !auth) || creating || loading}
                     onClose={handleCloseLogin}
-                    preventClose={loading}
+                    preventClose={loading || creating}
                 >
                     <AuthForm modalClose={handleCloseLogin} />
                 </BetterReactModal>

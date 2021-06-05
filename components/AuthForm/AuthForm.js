@@ -15,7 +15,7 @@ export default function AuthForm({ modalClose }) {
                 {type === 'REGISTER' && 'Đăng ký tài khoản'}
             </h3>
             {type === 'LOGIN' && <LoginForm modalClose={modalClose} />}
-            {type === 'REGISTER' && <RegisterForm modalClose={modalClose} />}
+            {type === 'REGISTER' && <RegisterForm toLogin={() => setType('LOGIN')} />}
             <hr className="my-4" />
             <div className="text-center">
                 {type === 'LOGIN' && (

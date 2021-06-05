@@ -1,25 +1,36 @@
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useAuth } from "../../lib/auth";
 import Button from "../common/Button";
 import Input from "../common/Input";
+import * as yup from 'yup'
+import { yupResolver } from "@hookform/resolvers/yup"
+import { useForm } from "react-hook-form";
 
-export default function LoginForm() {
-    const { loading, signInWithEmailAndPassword, error, clearError } = useAuth()
-    const [email, setEmail] = useState('')
-    const [password, setPassword] = useState('')
+const schema = yup.object().shape({
+    email: yup.string().required('Không thể để trống').email('Vui lòng nhập đúng định dạng'),
+    password: yup.string().required('Không thể để trống').min(6, "Tối thiểu 6 kí tự"),
+})
 
-    const handleLogin = () => {
-        clearError()
-        signInWithEmailAndPassword(email, password)
+export default function LoginForm({ }) {
+    const { loading, signInWithEmailAndPassword } = useAuth()
+    const [error, setError] = useState('')
+
+    const { register, handleSubmit, formState: { errors } } = useForm({
+        resolver: yupResolver(schema)
+    })
+
+
+    const handleLogin = async (data) => {
+        try {
+            await signInWithEmailAndPassword(data.email, data.password)
+        } catch (error) {
+            setError(error?.message || error)
+        }
     }
 
-    useEffect(() => {
-        clearError()
-    }, [])
-
     return (
-        <>
+        <form onSubmit={handleSubmit(handleLogin)}>
             {error && (
                 <div className="text-red-600 mb-2">
                     {error}
@@ -28,15 +39,15 @@ export default function LoginForm() {
             <Input
                 label="Email"
                 id="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
+                register={register('email')}
+                error={errors?.email?.message}
             />
             <Input
                 label="Mật khẩu"
                 id="password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
                 type="password"
+                register={register('password')}
+                error={errors?.password?.message}
             />
             <div className="text-right">
                 <Link href='/forgot-password'>
@@ -45,9 +56,9 @@ export default function LoginForm() {
                     </a>
                 </Link>
             </div>
-            <Button onClick={handleLogin} className="mt-2" loading={loading}>
+            <Button className="mt-2" loading={loading}>
                 ĐĂNG NHẬP
             </Button>
-        </>
+        </form>
     )
 }
