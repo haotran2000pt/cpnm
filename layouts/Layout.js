@@ -1,6 +1,5 @@
 import classNames from "classnames";
 import { useRouter } from "next/router";
-import { useEffect } from "react";
 import LoadingIcon from "../components/common/LoadingIcon";
 import Footer from "../components/Footer";
 import Header from "../components/Header/Header";

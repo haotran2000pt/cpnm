@@ -1,5 +1,5 @@
 import { useAuth } from "../lib/auth"
-import Sidebar from "../components/Admin/sidebar"
+import Sidebar from "../components/Admin/Sidebar"
 import classNames from "classnames"
 import { useState } from "react"
 import ErrorPage from '../pages/404'
