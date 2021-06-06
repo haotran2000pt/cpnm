@@ -17,18 +17,22 @@ export default function ProductCard({ product }) {
                         </LazyLoad>
                     </div>
                     <div>
-                        <h3 className="font-bold py-1 px-2 inline-block group-hover:bg-dark transition-colors group-hover:text-white duration-200">
-                            {product?.name || "iPhone X 64GB"}
-                        </h3>
-                        <div style={{ fontSize: 15 }} className="py-1 px-2 group-hover:text-white duration-200 group-hover:bg-dark inline-block font-semibold">
-                            <span className="inline-block">
-                                {numberWithCommas(calcSingleItemPrice(product))}đ
+                        <div>
+                            <h3 className="font-bold py-1 px-2 inline-block group-hover:bg-dark transition-colors group-hover:text-white duration-200">
+                                {product?.name || "iPhone X 64GB"}
+                            </h3>
+                        </div>
+                        <div>
+                            <div style={{ fontSize: 15 }} className="py-1 px-2 group-hover:text-white duration-200 group-hover:bg-dark inline-block font-semibold">
+                                <span className="inline-block">
+                                    {numberWithCommas(calcSingleItemPrice(product))}đ
                             </span>
-                            {product.discount !== 0 && (
-                                <span className="ml-2 text-gray-400 inline-block group-hover:text-white duration-200 line-through">
-                                    {numberWithCommas(product.price)}đ
-                                </span>
-                            )}
+                                {product.discount !== 0 && (
+                                    <span className="ml-2 text-gray-400 inline-block group-hover:text-white duration-200 line-through">
+                                        {numberWithCommas(product.price)}đ
+                                    </span>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>

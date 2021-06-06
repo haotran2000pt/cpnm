@@ -1,7 +1,7 @@
 import classNames from "classnames";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { AiOutlineKey, AiOutlineMenu, AiOutlinePoweroff, AiOutlineUser } from "react-icons/ai";
+import { AiOutlineHome, AiOutlineKey, AiOutlineMenu, AiOutlinePoweroff, AiOutlineUser } from "react-icons/ai";
 import { FiPackage } from "react-icons/fi";
 import { RiDashboardLine } from "react-icons/ri";
 import { BiDevices } from "react-icons/bi";
@@ -13,9 +13,17 @@ const routes = [{
     name: 'Quản lý sản phẩm',
     icon: BiDevices
 }, {
+    path: '/admin/users',
+    name: 'Quản lý người dùng',
+    icon: AiOutlineUser
+}, {
     path: '/admin/orders',
     name: 'Quản lý đơn hàng',
     icon: FiPackage
+}, {
+    path: '/admin/info',
+    name: 'Thông tin doanh nghiệp',
+    icon: AiOutlineHome
 }, {
     path: '/admin/password',
     name: 'Đổi mật khẩu',

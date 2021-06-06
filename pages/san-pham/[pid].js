@@ -24,6 +24,13 @@ SwiperCore.use([Thumbs]);
 
 export async function getServerSideProps({ params }) {
     const res = await firebaseAdmin.firestore().collection('products').where("slug", "==", params.pid).get()
+
+    if (res.empty) {
+        return {
+            notFound: true
+        }
+    }
+
     const product = { id: res.docs[0].id, ...res.docs[0].data() }
     const ratingsSnapshot = await firebaseAdmin
         .firestore()

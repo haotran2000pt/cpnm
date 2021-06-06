@@ -1,7 +1,9 @@
 import Link from 'next/link'
-import { FaFacebook, FaInstagram, FaTwitter, FaYoutube } from 'react-icons/fa'
+import { AiOutlineHome } from 'react-icons/ai'
+import { FaFacebook, FaTwitter, FaYoutube } from 'react-icons/fa'
+import { GoLocation } from 'react-icons/go'
 
-export default function Footer() {
+export default function Footer({ info }) {
     return <footer>
         <div className="bg-dark py-16 px-10 text-white">
             <div className="flex max-w-5xl mx-auto justify-between items-center">
@@ -42,16 +44,22 @@ export default function Footer() {
             </div>
             <div className="flex-1">
                 <h4 className="font-bold text-lg">Tư vấn mua hàng</h4>
-                <h5 className="text-xl text-red-500 font-semibold">1800 1234</h5>
+                <h5 className="text-xl text-red-500 font-semibold">{info.advise_tel}</h5>
                 <h4 className="font-bold text-lg">Hỗ trợ kỹ thuật</h4>
-                <h5 className="text-xl text-red-500 font-semibold">1800 5678</h5>
+                <h5 className="text-xl text-red-500 font-semibold">{info.technic_tel}</h5>
             </div>
             <div className="flex-1">
-                <h4 className="font-bold mb-2">Kết nối với chúng tôi</h4>
+                <h4 className="font-bold mb-2">Địa chỉ cửa hàng:</h4>
+                <div className="mb-2">
+                    <div>
+                        <GoLocation className="inline-block" />{' '}
+                        <span className="align-middle font-medium">
+                            {info.address}
+                        </span>
+                    </div>
+                </div>
                 <div className="flex text-3xl space-x-3">
-                    <a className="text-blue-800" target="blank" href="https://www.facebook.com/"><FaFacebook /></a>
-                    <a className="text-blue-500" target="blank" href="https://www.twitter.com/"><FaTwitter /></a>
-                    <a className="text-red-500" target="blank" href="https://www.instagram.com/"><FaYoutube /></a>
+                    <a className="text-blue-700" target="blank" href={info.facebook_fanpage}><FaFacebook /></a>
                 </div>
             </div>
         </div>

@@ -100,11 +100,6 @@ export default function Home({ saleProducts, newProducts, featuredProducts }) {
             </div>
           ))}
         </div>
-        <div className='max-w-sm mx-auto'>
-          <Button white>
-            Xem thêm
-          </Button>
-        </div>
       </div>
       <hr className="mb-4" />
       <div className="mb-4">
@@ -117,11 +112,6 @@ export default function Home({ saleProducts, newProducts, featuredProducts }) {
               <ProductCard product={product} />
             </div>
           ))}
-        </div>
-        <div className='max-w-sm mx-auto'>
-          <Button white>
-            Xem thêm
-          </Button>
         </div>
       </div>
     </Layout>

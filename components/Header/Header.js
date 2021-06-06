@@ -21,7 +21,7 @@ const transitionStyles = {
     exited: { opacity: 0 },
 };
 
-export default function Header() {
+export default function Header({ info }) {
     const [login, setLogin] = useState(false)
     const [showCategory, setShowCategory] = useState(false)
     const [showCheckout, setShowCheckout] = useState(false)
@@ -84,8 +84,8 @@ export default function Header() {
                 <div className="flex-1 flex items-center">
                     <Link href="/">
                         <a className="mr-4">
-                            Logo
-                    </a>
+                            {info.name}
+                        </a>
                     </Link>
                     <div ref={categoriesRef}>
                         <button onClick={() => setShowCategory(!showCategory)} className={classNames('px-1', {
