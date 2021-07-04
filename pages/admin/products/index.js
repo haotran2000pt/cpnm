@@ -2,15 +2,40 @@ import Link from "next/link";
 import { useState } from "react";
 import { AiOutlinePlus, AiOutlineSearch } from "react-icons/ai";
 import { categories } from "../../../constants/category";
-import useProducts from "../../../hooks/query/useProducts";
 import AdminLayout from "../../../layouts/AdminLayout";
 import numberWithCommas from '../../../utils/numberWithCommas'
 import removeAccents from '../../../utils/removeAccents'
+import * as yup from 'yup'
+import useProducts from '../../../lib/query/useProducts'
+
+export const productSchema = yup.object().shape({
+    price: yup.number().min(1000).required(),
+    name: yup.string().required().min(5),
+    description: yup.string().required().min(50),
+    quantity: yup.number().min(0).required(),
+    slug: yup.string().required().min(5),
+    manufacturer: yup.string().required("Hãng sản xuất không được để trống"),
+    modelSeries: yup.string().required("Dòng sản phẩm không được để trống"),
+    discount: yup.number().required().min(0),
+    specifications: yup.array().of(
+        yup.object().shape({
+            name: yup.string().required(),
+            specs: yup.array().min(1).of(
+                yup.object().shape({
+                    title: yup.string().required(),
+                    detail: yup.string().required()
+                })
+            )
+        })
+    ).min(1, "Vui lòng có ít nhất 1 thông số!")
+})
 
 export default function Products() {
-    const { isFetching, data } = useProducts({})
+    const { isLoading, data } = useProducts()
     const [search, setSearch] = useState('')
-    const filtered = isFetching ? [] : data.filter(ele => removeAccents(ele.name.toLowerCase()).includes(removeAccents(search.toLowerCase())))
+    const filtered = isLoading ? [] : data.filter(ele =>
+        removeAccents(ele.name.toLowerCase()).includes(removeAccents(search.toLowerCase())) ||
+        ele.id.toLowerCase().includes(search.toLowerCase()))
 
     return (
         <AdminLayout>
@@ -31,13 +56,14 @@ export default function Products() {
                     <input
                         name="search"
                         className="w-64 pl-0 p-2 bg-transparent flex-auto text-sm font-semibold"
-                        placeholder="Tìm kiếm theo tên sản phẩm" />
+                        placeholder="Tìm kiếm theo SKU, tên sản phẩm" />
                 </form>
                 <div className="mx-2">
                     <table className="w-full">
                         <thead className="text-left text-gray-500 text-sm">
                             <tr>
-                                <th className="py-2 pl-2">Tên</th>
+                                <th className="py-2 pl-2">SKU</th>
+                                <th>Tên</th>
                                 <th>Giá</th>
                                 <th>Danh mục</th>
                                 <th>Khuyến mãi</th>
@@ -45,14 +71,15 @@ export default function Products() {
                             </tr>
                         </thead>
                         <tbody>
-                            {!isFetching &&
+                            {!isLoading &&
                                 filtered.map(row => (
                                     <Link key={row.id} href={"/admin/products/" + row.slug}>
                                         <tr className="text-sm hover:bg-gray-100 cursor-pointer">
-                                            <td className="py-2 pl-2">{row.name}</td>
+                                            <td className="py-2 pl-2">{row.id}</td>
+                                            <td>{row.name}</td>
                                             <td>{numberWithCommas(row.price)}đ</td>
                                             <td>{categories[row.category].name}</td>
-                                            <td>{row.discount}%</td>
+                                            <td>{numberWithCommas(row.discount)}đ</td>
                                             <td>{row.soldUnits}</td>
                                         </tr>
                                     </Link>

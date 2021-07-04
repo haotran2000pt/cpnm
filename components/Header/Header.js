@@ -13,6 +13,10 @@ import { useAuth } from '../../lib/auth'
 import CategoryDropdown from './CategoryDropdown'
 import UserMenu from './UserMenu'
 import { useCart } from '../../contexts/cart'
+import { useQueryClient } from 'react-query'
+import useGlobal from '../../lib/query/useGlobal'
+import _ from 'lodash'
+import { UserRole } from '../../constants/user'
 
 const transitionStyles = {
     entering: { opacity: 1 },
@@ -21,14 +25,17 @@ const transitionStyles = {
     exited: { opacity: 0 },
 };
 
-export default function Header({ info }) {
+export default function Header() {
+    const { data } = useGlobal()
+    const info = data.storeInfo
+
     const [login, setLogin] = useState(false)
     const [showCategory, setShowCategory] = useState(false)
     const [showCheckout, setShowCheckout] = useState(false)
     const [showWishlist, setShowWishList] = useState(false)
     const [showUserMenu, setShowUserMenu] = useState(false)
-    const { auth, loading, creating } = useAuth()
-    const { items } = useCart()
+
+    const { authUser, loading } = useAuth()
 
     const categoriesRef = useRef(null)
     const userMenuRef = useRef(null)
@@ -48,7 +55,7 @@ export default function Header({ info }) {
 
     const handleOpenLogin = e => {
         e.preventDefault()
-        if (!auth)
+        if (!authUser)
             setLogin(true)
         else
             setShowUserMenu(!showUserMenu)
@@ -60,11 +67,11 @@ export default function Header({ info }) {
     }
 
     useEffect(() => {
-        if (auth && showCategory)
+        if (authUser && showCategory)
             setShowCategory(false)
-        if (!auth && showUserMenu)
+        if (!authUser && showUserMenu)
             setShowUserMenu(false)
-    }, [auth])
+    }, [authUser])
 
     return (
         <>
@@ -120,31 +127,36 @@ export default function Header({ info }) {
                     <button onClick={() => setShowCheckout(true)} className="mr-5 flex">
                         <AiOutlineShopping />
                         <span className="text-xs mt-auto ml-1 font-bold">
-                            {items.reduce((acc, cur) => {
+                            {/* {items && items.reduce((acc, cur) => {
                                 return acc + cur.quantity
-                            }, 0)}
+                            }, 0)} */}
                         </span>
                     </button>
-                    {auth && !creating && (
+                    {authUser && (
                         <button onClick={() => setShowWishList(true)} className="mr-5 flex">
                             <AiOutlineHeart />
                         </button>
                     )}
                     <div ref={userMenuRef} className="flex">
-                        <button onClick={handleOpenLogin}>
+                        <button className="relative" onClick={handleOpenLogin}>
                             <AiOutlineUser />
+                            {authUser && authUser.role !== UserRole.USER &&
+                                <span className="absolute text-[10px] top-1/2 -translate-y-1/2 left-full origin-center p-1 leading-3 bg-black text-white">
+                                    {_.findKey(UserRole, v => v === authUser.role)}
+                                </span>
+                            }
                         </button>
                         <div className="absolute top-full right-16">
-                            <UnmountClosed isOpened={showUserMenu && auth}>
+                            <UnmountClosed isOpened={showUserMenu && authUser}>
                                 <UserMenu />
                             </UnmountClosed>
                         </div>
                     </div>
                 </div>
                 <BetterReactModal
-                    isOpen={(login && !auth) || creating || loading}
+                    isOpen={(login && !authUser) || loading}
                     onClose={handleCloseLogin}
-                    preventClose={loading || creating}
+                    preventClose={loading}
                 >
                     <AuthForm modalClose={handleCloseLogin} />
                 </BetterReactModal>

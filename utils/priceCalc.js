@@ -1,5 +1,5 @@
 export function calcSingleItemPrice(product) {
-    return product.price - Math.floor(product.price * product.discount / 100)
+    return product.price - product.discount
 }
 
 export function calcListItemPrice(list) {

@@ -1,4 +1,5 @@
 import { firebaseAdmin } from "../../lib/firebase-admin"
+import { UserRole } from '../../constants/user'
 
 const handler = async (req, res) => {
     if (req.method === 'POST') {
@@ -20,13 +21,14 @@ const handler = async (req, res) => {
                     email,
                     password,
                 })
+
             try {
                 await firebaseAdmin.firestore()
                     .collection('users')
                     .doc(user.uid)
                     .set({
                         name,
-                        role: 'USER',
+                        role: UserRole.USER,
                         wishlist: []
                     });
             } catch (e) {

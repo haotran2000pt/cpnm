@@ -1,4 +1,5 @@
 module.exports = {
+  mode: 'jit',
   purge: ['./pages/**/*.{js,ts,jsx,tsx}', './layouts/*.{js,ts,jsx,tsx}', './components/*.{js,ts,jsx,tsx}', './components/**/*.{js,ts,jsx,tsx}'],
   darkMode: false, // or 'media' or 'class'
   theme: {
@@ -11,13 +12,5 @@ module.exports = {
         'admin-sidebar': '#6A75CA'
       }
     },
-  },
-  variants: {
-    extend: {
-      scale: ['group-hover'],
-      borderWidth: ['hover'],
-      visibility: ['hover', 'group-hover'],
-    },
-  },
-  plugins: [],
+  }
 }

@@ -19,14 +19,25 @@ const OrderModal = ({ order, onClose, refetch }) => {
     const [updateLoading, setUpdateLoading] = useState(false)
     if (!order) return null
 
-    const onCancel = () => {
-        return firebase.firestore().collection('orders').doc(order.id).update({
+    const onCancel = async () => {
+        const batch = firebase.firestore().batch()
+        const orderRef = firebase.firestore().collection('orders').doc(order.id)
+        batch.update(orderRef, {
             status: "Đã hủy",
             history: [{
                 created_at: Date.now(),
                 status: "Đơn hàng đã bị hủy"
             }, ...order.history]
         })
+        await Promise.all(order.items.map(async (item) => {
+            const increment = firebase.firestore.FieldValue.increment(item.quantity)
+            const productRef = firebase.firestore().collection('products')
+                .doc(item.product.id)
+            batch.update(productRef, {
+                quantity: increment
+            })
+        }))
+        await batch.commit()
     }
 
     const onUpdate = async (status) => {
@@ -35,6 +46,14 @@ const OrderModal = ({ order, onClose, refetch }) => {
         try {
             switch (status) {
                 case 'Đã xác nhận':
+                    await Promise.all(order.items.map(async (item) => {
+                        const decrement = firebase.firestore.FieldValue.increment(item.quantity * -1)
+                        const productRef = firebase.firestore().collection('products')
+                            .doc(item.product.id)
+                        batch.update(productRef, {
+                            quantity: decrement
+                        })
+                    }))
                     text = 'Shop đã xác nhận đơn hàng'
                     break;
                 case 'Đang giao hàng':
@@ -70,7 +89,7 @@ const OrderModal = ({ order, onClose, refetch }) => {
 
     }
 
-    const handleUpdate = async (e) => {
+    const handleUpdate = async (e, value) => {
         e.preventDefault()
         if (updateLoading) return
         setUpdateLoading(true)
@@ -81,7 +100,7 @@ const OrderModal = ({ order, onClose, refetch }) => {
                     break;
                 }
                 case 'UPDATE': {
-                    await onUpdate(e.target.status.value)
+                    await onUpdate(value)
                     break;
                 }
             }
@@ -169,7 +188,7 @@ const OrderModal = ({ order, onClose, refetch }) => {
                         <tbody>
                             {order.items.map(item => (
                                 <tr className="font-semibold py-2">
-                                    <td className="flex pb-2">
+                                    <td className="flex pb-2 pr-4">
                                         <div className="w-16 h-16">
                                             <img src={item.product.images[0]} className="w-full h-full object-contain" />
                                         </div>
@@ -250,18 +269,9 @@ const OrderModal = ({ order, onClose, refetch }) => {
                             <h4 className="font-bold mb-1 bg-blue-100 text-blue-700 py-4 px-8">
                                 Cập nhật trạng thái đơn hàng
                             </h4>
-                            <form onSubmit={handleUpdate} className="py-6 px-8 text-sm">
+                            <form onSubmit={e => handleUpdate(e, productStatus[_.indexOf(productStatus, order.status) + 1])} className="py-6 px-8 text-sm">
                                 <div className="font-semibold text-gray-500 mb-4 space-y-2 max-w-md">
-                                    <div className="text-red-500">Lưu ý: Sau khi cập nhật thì bạn sẽ không thể chọn những trạng thái ở trên ở lần cập nhật tiếp theo.</div>
-                                    <div>Chọn một trong các trạng thái sau:</div>
-                                    <div className="ml-8 space-y-1">
-                                        {productStatus.slice(_.indexOf(productStatus, order.status) + 1, 4).map((status, i) => (
-                                            <div key={status}>
-                                                <input defaultChecked={i === 0} type="radio" id={status} name="status" value={status} className="align-middle mr-1" />
-                                                <label htmlFor={status} className="align-middle">{status}</label>
-                                            </div>
-                                        ))}
-                                    </div>
+                                    <div>Thay đổi trạng thái đơn hàng sang: <span className="text-red-500">{productStatus[_.indexOf(productStatus, order.status) + 1]}</span></div>
                                 </div>
                                 <div className="text-right space-x-4">
                                     <button
@@ -276,7 +286,7 @@ const OrderModal = ({ order, onClose, refetch }) => {
                                         className="p-2 rounded-md text-blue-500 hover:text-blue-700 font-semibold"
                                     >
                                         Cập nhật
-                                </button>
+                                    </button>
                                 </div>
                             </form>
                         </>

@@ -1,6 +1,5 @@
 import { AiOutlineMenu } from "react-icons/ai";
 import { BiLogOut } from "react-icons/bi";
-import { FaHamburger } from "react-icons/fa";
 import { useAuth } from "../../../lib/auth";
 
 export default function Header({ setExpand }) {

@@ -8,6 +8,7 @@ import classNames from 'classnames';
 import { useEffect, useState } from 'react';
 import firebase from '../../lib/firebase'
 import { store } from 'react-notifications-component';
+import useUpdateAccount from '../../lib/query/useUpdateAccount';
 
 const Row = ({ children }) => (<div className="flex space-x-4 items-center">{children}</div>)
 
@@ -36,122 +37,100 @@ const schema = yup.object().shape({
 })
 
 export default function User() {
-    const { auth, setAuth } = useAuth()
-    const { register, handleSubmit, formState: { errors }, reset, watch } = useForm({
+    const { authUser: auth } = useAuth()
+    const { register, handleSubmit, formState: { errors }, reset } = useForm({
         resolver: yupResolver(schema)
     })
-    const [loading, setLoading] = useState(false)
+    const updateAccountMutate = useUpdateAccount()
 
     useEffect(() => {
         if (auth) {
-            const { id, ...authData } = auth
+            const { uid, ...authData } = auth
             reset(authData)
         }
     }, [auth])
 
-    const onSubmit = async (data) => {
-        setLoading(true)
-        try {
-            await firebase.firestore().collection('users').doc(auth.id).set(data, { merge: true })
-            setAuth({
-                ...auth,
-                ...data
-            })
-            store.addNotification({
-                title: "Thành công",
-                message: "Cập nhật tài khoản thành công",
-                type: "success",
-                insert: "top",
-                container: "bottom-right",
-            })
-        }
-        catch (err) {
-            store.addNotification({
-                title: "Thất bại",
-                message: "Không thể cập nhật tài khoản\n" + err?.message || err,
-                type: "danger",
-                insert: "top",
-                container: "bottom-right",
-            })
-        }
-        setLoading(false)
+    const onSubmit = (data) => {
+        updateAccountMutate.mutate(data)
     }
 
     return (
         <UserLayout>
             <div className="border border-gray-400 shadow-md p-2">
                 <h2 className="text-xl font-medium border-b pb-2 mb-2">Thông tin tài khoản</h2>
-                <form onSubmit={handleSubmit(onSubmit)} className="text-gray-600 space-y-4">
-                    <Row>
-                        <Left>Họ tên:</Left>
-                        <Right>
-                            <Input
-                                inputProps={register('name')}
-                                error={errors?.name?.message}
-                            />
-                        </Right>
-                    </Row>
-                    <Row>
-                        <Left>Số điện thoại:</Left>
-                        <Right>
-                            <Input
-                                inputProps={register('phone')}
-                                error={errors?.phone?.message}
-                            />
-                        </Right>
-                    </Row>
-                    <Row>
-                        <Left>Email:</Left>
-                        <Right>
-                            <div className="w-full bg-gray-200 p-2 text-sm font-medium select-none">
-                                {auth?.email}
-                            </div>
-                        </Right>
-                    </Row>
-                    <Row>
-                        <Left>Tỉnh/Thành phố:</Left>
-                        <Right>
-                            <Input
-                                inputProps={register('city')}
-                                error={errors?.city?.message}
-                            />
-                        </Right>
-                    </Row>
-                    <Row>
-                        <Left>Quận/Huyện:</Left>
-                        <Right>
-                            <Input
-                                inputProps={register('district')}
-                                error={errors?.district?.message}
-                            />
-                        </Right>
-                    </Row>
-                    <Row>
-                        <Left>Xã/Phường:</Left>
-                        <Right>
-                            <Input
-                                inputProps={register('ward')}
-                                error={errors?.ward?.message}
-                            />
-                        </Right>
-                    </Row>
-                    <Row>
-                        <Left>Tên đường, số nhà:</Left>
-                        <Right>
-                            <Input
-                                inputProps={register('street')}
-                                error={errors?.street?.message}
-                            />
-                        </Right>
-                    </Row>
-                    <Row>
-                        <Left />
-                        <Right>
-                            <Button loading={loading}>
-                                Cập nhật
-                            </Button>
-                        </Right>
-                    </Row>
+                <form onSubmit={handleSubmit(onSubmit)} className="flex justify-center">
+                    <div className="text-gray-600 space-y-4 w-[600px]">
+                        <Row>
+                            <Left>Họ tên:</Left>
+                            <Right>
+                                <Input
+                                    inputProps={register('name')}
+                                    error={errors?.name?.message}
+                                />
+                            </Right>
+                        </Row>
+                        <Row>
+                            <Left>Số điện thoại:</Left>
+                            <Right>
+                                <Input
+                                    inputProps={register('phone')}
+                                    error={errors?.phone?.message}
+                                />
+                            </Right>
+                        </Row>
+                        <Row>
+                            <Left>Email:</Left>
+                            <Right>
+                                <div className="w-full bg-gray-200 p-2 text-sm font-medium select-none">
+                                    {auth?.email}
+                                </div>
+                            </Right>
+                        </Row>
+                        <Row>
+                            <Left>Tỉnh/Thành phố:</Left>
+                            <Right>
+                                <Input
+                                    inputProps={register('city')}
+                                    error={errors?.city?.message}
+                                />
+                            </Right>
+                        </Row>
+                        <Row>
+                            <Left>Quận/Huyện:</Left>
+                            <Right>
+                                <Input
+                                    inputProps={register('district')}
+                                    error={errors?.district?.message}
+                                />
+                            </Right>
+                        </Row>
+                        <Row>
+                            <Left>Xã/Phường:</Left>
+                            <Right>
+                                <Input
+                                    inputProps={register('ward')}
+                                    error={errors?.ward?.message}
+                                />
+                            </Right>
+                        </Row>
+                        <Row>
+                            <Left>Tên đường, số nhà:</Left>
+                            <Right>
+                                <Input
+                                    inputProps={register('street')}
+                                    error={errors?.street?.message}
+                                />
+                            </Right>
+                        </Row>
+                        <Row>
+                            <Left />
+                            <Right>
+                                <Button loading={updateAccountMutate.isLoading}>
+                                    Cập nhật
+                                </Button>
+                            </Right>
+                        </Row>
+                    </div>
                 </form>
             </div>
         </UserLayout>

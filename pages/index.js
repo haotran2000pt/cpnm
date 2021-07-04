@@ -1,10 +1,9 @@
-import Layout from '../layouts/Layout'
-import ProductCard from '../components/Product/ProductCard'
-import HeroBanner from '../components/Banner/HeroBanner'
-import Banner from '../components/Banner/Banner'
 import Link from 'next/link'
+import Banner from '../components/Banner/Banner'
+import HeroBanner from '../components/Banner/HeroBanner'
+import ProductCard from '../components/Product/ProductCard'
 import { categories, categoryIcon } from '../constants/category'
-import Button from '../components/common/Button'
+import Layout from '../layouts/Layout'
 import { getProducts } from '../lib/db'
 
 export async function getServerSideProps({ }) {
@@ -36,7 +35,6 @@ export async function getServerSideProps({ }) {
     }],
     limit: 5
   })
-
 
   return {
     props: {

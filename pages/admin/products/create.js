@@ -1,38 +1,36 @@
-import Link from "next/link";
-import { useForm } from "react-hook-form";
-import { FiChevronLeft } from "react-icons/fi";
-import AdminLayout from "../../../layouts/AdminLayout";
 import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from "yup";
-import { useState } from "react";
-import firebase from '../../../lib/firebase'
-import { store } from 'react-notifications-component';
+import Link from "next/link";
 import { useRouter } from "next/router";
-import CreateProduct from "../../../components/Admin/CreateProduct";
+import { useState } from "react";
+import { FormProvider, useForm } from "react-hook-form";
+import { FiChevronLeft } from "react-icons/fi";
+import { store } from 'react-notifications-component';
 import { v4 } from "uuid";
-
-const schema = yup.object().shape({
-    price: yup.number().min(1000).required(),
-    name: yup.string().required().min(5),
-    description: yup.string().required().min(50).max(2000),
-    // quantity: yup.number().min(0).required(),
-    slug: yup.string().required().min(5),
-    discount: yup.number().required().min(0).max(100)
-})
+import { productSchema } from ".";
+import CreateProduct from "../../../components/Admin/CreateProduct";
+import AdminLayout from "../../../layouts/AdminLayout";
+import firebase from '../../../lib/firebase';
 
 export default function ProductCreate() {
-    const [loading, setLoading] = useState(false)
     const [images, setImages] = useState([])
     const router = useRouter()
 
-    const { control, handleSubmit, ...form } = useForm({
-        resolver: yupResolver(schema)
+    const methods = useForm({
+        resolver: yupResolver(productSchema)
     })
 
+    const loading = methods.formState.isSubmitting
+
     const onSubmit = async (data) => {
+        if (data.price < data.discount) {
+            methods.setError('price', {
+                type: "other",
+                message: "Giá không thể thấp hơn khuyến mãi"
+            })
+            return;
+        }
         if (loading)
             return
-        setLoading(true)
         const imageURLs = await Promise.all(
             images.map(async (image) => {
                 if (typeof image === 'string')
@@ -68,14 +66,14 @@ export default function ProductCreate() {
                 </a>
             </Link>
             <h3 className="text-xl font-bold mb-4">Thêm sản phẩm mới</h3>
-            <CreateProduct
-                onSubmit={handleSubmit(onSubmit)}
-                form={form}
-                control={control}
-                loading={loading}
-                images={images}
-                setImages={setImages}
-            />
+            <FormProvider {...methods}>
+                <CreateProduct
+                    onSubmit={methods.handleSubmit(onSubmit)}
+                    loading={loading}
+                    images={images}
+                    setImages={setImages}
+                />
+            </FormProvider>
         </AdminLayout>
     )
 }

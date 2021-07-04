@@ -1,12 +1,10 @@
 import classNames from "classnames"
-import _ from "lodash"
 import Link from "next/link"
-import { useRouter } from "next/router"
 import { AiOutlineLock, AiOutlineUser } from "react-icons/ai"
 import { IoDocumentOutline } from "react-icons/io5"
-import LoadingIcon from "../components/common/LoadingIcon"
 import { useAuth } from "../lib/auth"
 import Layout from "./Layout"
+import { useRouter } from 'next/router'
 
 const userRoutes = [{
     name: "Thông tin tài khoản",
@@ -23,14 +21,12 @@ const userRoutes = [{
 }]
 
 const UserLayout = ({ children }) => {
+    const { authUser } = useAuth()
     const router = useRouter()
-    const { auth, initializing } = useAuth()
 
-    if (router.isReady && !auth && !initializing) {
+    if (!authUser) {
         router.push('/')
-        return <div className="w-screen h-screen flex-center">
-            <LoadingIcon />
-        </div>
+        return null
     }
 
     return (

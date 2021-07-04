@@ -1,5 +1,4 @@
 import moment from 'moment'
-import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { AiOutlineShoppingCart } from 'react-icons/ai'
 import BetterReactModal from '../../components/common/BetterReactModal'

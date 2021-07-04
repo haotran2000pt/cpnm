@@ -1,10 +1,36 @@
 import Link from 'next/link'
-import { AiOutlineHome } from 'react-icons/ai'
-import { FaFacebook, FaTwitter, FaYoutube } from 'react-icons/fa'
+import { AiOutlineGift } from 'react-icons/ai'
+import { BiWrench } from 'react-icons/bi'
+import { BsArrowRepeat } from 'react-icons/bs'
+import { FaFacebook } from 'react-icons/fa'
 import { GoLocation } from 'react-icons/go'
+import { SiAdguard } from 'react-icons/si'
+import useGlobal from '../lib/query/useGlobal'
 
-export default function Footer({ info }) {
+export default function Footer() {
+    const { data } = useGlobal()
+    const info = data.storeInfo
+
     return <footer>
+        <div className="border-t flex justify-center p-8">
+            <div className="flex justify-between w-full max-w-[960px] text-gray-600">
+                {[
+                    { icon: BiWrench, title: "Hỗ trợ kỹ thuật trọn đời" },
+                    { icon: BsArrowRepeat, title: "1 đổi 1 trong 7 ngày" },
+                    { icon: SiAdguard, title: "Bảo hành đến 18 tháng" },
+                    { icon: AiOutlineGift, title: "Giao hàng toàn quốc" },
+                    { icon: GoLocation, title: "Giao hàng nội thành trong 1h" },
+                ].map(({ icon, title }) => {
+                    const Icon = icon
+                    return (
+                        <div className="text-center max-w-[120px]" key={title}>
+                            <Icon size={36} className="mx-auto mb-1" />
+                            <div className="text-[15px] font-medium">{title}</div>
+                        </div>
+                    )
+                })}
+            </div>
+        </div>
         <div className="bg-dark py-16 px-10 text-white">
             <div className="flex max-w-5xl mx-auto justify-between items-center">
                 <div className="max-w-md">

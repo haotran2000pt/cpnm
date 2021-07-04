@@ -16,7 +16,7 @@ export default function ProductImageGallery({ images }) {
             >
                 {images.map(image => (
                     <SwiperSlide>
-                        <img className="mx-auto h-96" src={image} alt="product image" />
+                        <img className="mx-auto h-96 object-contain" src={image} alt="product image" />
                     </SwiperSlide>
                 ))}
             </Swiper>

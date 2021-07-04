@@ -1,9 +1,10 @@
 import classNames from "classnames"
+import { useFormContext } from "react-hook-form"
 import Input, { Error, Label } from "../common/Input"
 import Container from "./Container"
 
-const SalesInfo = ({ form }) => {
-    const { register, formState: { errors } } = form
+const SalesInfo = () => {
+    const { register, formState: { errors } } = useFormContext()
 
     return (
         <Container name="Thông tin bán hàng">
@@ -24,11 +25,12 @@ const SalesInfo = ({ form }) => {
                                 <Error className="absolute">
                                     {errors.price.type === "typeError" && "Vui lòng nhập giá sản phẩm"}
                                     {errors.price.type === "min" && "Giá phải lớn hơn 1,000đ"}
+                                    {errors.price.type === "other" && errors.price.message}
                                 </Error>
                             </div>)}
                     </div>
                 </div>
-                {/* <div className="flex items-center space-x-8 w-full">
+                <div className="flex items-center space-x-8 w-full">
                     <Label className="w-24 block text-right">Kho hàng:</Label>
                     <div className="w-96">
                         <input
@@ -47,7 +49,7 @@ const SalesInfo = ({ form }) => {
                                 </Error>
                             </div>)}
                     </div>
-                </div> */}
+                </div>
                 <div className="flex items-center space-x-8 w-full">
                     <Label className="w-24 block text-right">Khuyến mãi:</Label>
                     <div className="w-96">
@@ -55,6 +57,7 @@ const SalesInfo = ({ form }) => {
                             defaultValue={0}
                             type="number"
                             {...register('discount')}
+                            step={1000}
                             className={classNames("admin-input w-full hide-number-type-arrow", {
                                 'border-red-400': errors?.discount
                             })}

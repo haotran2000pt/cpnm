@@ -1,41 +1,53 @@
-import Link from "next/link";
-import { AiFillHeart, AiOutlineHeart } from "react-icons/ai";
-import Layout from "../../layouts/Layout";
-import SwiperCore, { Thumbs } from 'swiper/core';
-import ProductImageGallery from "../../components/Product/ProductImageGallery";
-import Button from '../../components/common/Button'
-import ProductCard from "../../components/Product/ProductCard";
-import UserReview from "../../components/Product/UserReview";
-import { firebaseAdmin } from '../../lib/firebase-admin'
-import { categories } from "../../constants/category";
-import numberWithCommas from '../../utils/numberWithCommas'
-import Head from 'next/head'
-import { useCart } from "../../contexts/cart";
-import StarRatings from 'react-star-ratings';
-import { store } from "react-notifications-component";
-import { useState } from "react";
-import { useAuth } from "../../lib/auth";
-import firebase from "../../lib/firebase";
-import LoadingIcon from "../../components/common/LoadingIcon";
+import classNames from "classnames";
 import _ from "lodash";
+import Head from 'next/head';
+import Link from "next/link";
 import { useRouter } from "next/router";
+import { useMemo, useState } from "react";
+import ReactHtmlParser from 'react-html-parser';
+import { AiFillHeart, AiOutlineHeart } from "react-icons/ai";
+import { store } from "react-notifications-component";
+import StarRatings from 'react-star-ratings';
+import { CSSTransition, SwitchTransition } from "react-transition-group";
+import SwiperCore, { Thumbs } from 'swiper/core';
+import Button from '../../components/common/Button';
+import LoadingIcon from "../../components/common/LoadingIcon";
+import ShowMore from "../../components/common/ShowMore";
+import ProductCard from "../../components/Product/ProductCard";
+import ProductImageGallery from "../../components/Product/ProductImageGallery";
+import UserReview from "../../components/Product/UserReview";
+import { categories } from "../../constants/category";
+import { UserRole } from "../../constants/user";
+import { useCart } from "../../contexts/cart";
+import Layout from "../../layouts/Layout";
+import { useAuth } from "../../lib/auth";
+import { getProduct } from "../../lib/db";
+import firebase from "../../lib/firebase";
+import { firebaseAdmin } from '../../lib/firebase-admin';
+import useAddWishlist from "../../lib/query/wishlist/useAddWishlist";
+import useRemoveWishlist from "../../lib/query/wishlist/useRemoveWishlist";
+import useWishlist from "../../lib/query/wishlist/useWishlist";
+import numberWithCommas from '../../utils/numberWithCommas';
+import { calcSingleItemPrice } from "../../utils/priceCalc";
+import { Switch } from '@headlessui/react'
+import { useDispatch, useSelector } from "react-redux";
+import { addCompare, removeCompare } from "../../lib/redux/slices/compareSlice";
 
 SwiperCore.use([Thumbs]);
 
 export async function getServerSideProps({ params }) {
-    const res = await firebaseAdmin.firestore().collection('products').where("slug", "==", params.pid).get()
+    const product = await getProduct(params.pid)
 
-    if (res.empty) {
+    if (!product) {
         return {
             notFound: true
         }
     }
 
-    const product = { id: res.docs[0].id, ...res.docs[0].data() }
     const ratingsSnapshot = await firebaseAdmin
         .firestore()
         .collection('ratings')
-        .where("productId", "==", res.docs[0].id)
+        .where("productId", "==", product.id)
         .orderBy('created_at', 'desc')
         .get()
 
@@ -55,34 +67,47 @@ export async function getServerSideProps({ params }) {
     }
 }
 
+const content = {
+    DESCRIPTION: 'description',
+    SPECIFICATION: 'specification',
+    REVIEW: 'review'
+}
+
 export default function Product({ product, ratings }) {
+    const compare = useSelector(state => state.compare.products.some(compareProduct => compareProduct === product.id))
     const { append } = useCart()
-    const { auth } = useAuth()
+    const { authUser: auth } = useAuth()
+    const { data: wishlist } = useWishlist()
+    const addWishlistMutate = useAddWishlist()
+    const removeWishlistMutate = useRemoveWishlist()
     const [loading, setLoading] = useState(false)
     const [ratingLoading, setRatingLoading] = useState(false)
     const [rating, setRating] = useState(0)
     const [ratingContent, setRatingContent] = useState('')
     const [showRating, setShowRating] = useState(3)
     const [showRatingLoading, setShowRatingLoading] = useState(false)
-    const [wishlistLoading, setWishlistLoading] = useState(false)
+    const [showContent, setShowContent] = useState(content.DESCRIPTION)
     const router = useRouter()
-    const isWishlisted = auth ? auth.wishlist.includes(product.id) : false
+    const dispatch = useDispatch()
+
+    const setCompare = () => {
+        if (compare) {
+            dispatch(removeCompare(product))
+        } else {
+            dispatch(addCompare(product))
+        }
+    }
+
+    const isWishlisted = useMemo(() => {
+        if (wishlist)
+            return wishlist.some(wishlistProduct => product.id === wishlistProduct.id)
+        else
+            return false
+    }, [wishlist])
 
     const onAppend = async () => {
         setLoading(true)
-        await new Promise(res => setTimeout(res, 1000))
-        append(product)
-        store.addNotification({
-            title: "Thành công",
-            message: "Sản phẩm đã được thêm vào giỏ hàng",
-            type: "success",
-            insert: "top",
-            container: "bottom-right",
-            dismiss: {
-                duration: 2500,
-                onScreen: true
-            }
-        })
+        await append(product)
         setLoading(false)
     }
 
@@ -143,29 +168,17 @@ export default function Product({ product, ratings }) {
 
     const onWishlist = async (e) => {
         e.preventDefault()
-        if (wishlistLoading)
+        if (addWishlistMutate.isLoading || removeWishlistMutate.isLoading)
             return
         if (!auth) {
             alert("Vui lòng đăng nhập để sử dụng tính năng này!")
             return
         }
-        setWishlistLoading(true)
-        try {
-            let newWishlistData
-            if (!isWishlisted) {
-                newWishlistData = [...auth.wishlist, product.id]
-            } else {
-                newWishlistData = _.without(auth.wishlist, product.id)
-            }
-
-            await firebase.firestore()
-                .collection('users')
-                .doc(auth.id)
-                .update({ wishlist: newWishlistData })
-        } catch (err) {
-            alert(err.message)
+        if (!isWishlisted) {
+            addWishlistMutate.mutate(product)
+        } else {
+            removeWishlistMutate.mutate(product)
         }
-        setWishlistLoading(false)
     }
 
     const onMoreRating = async () => {
@@ -198,7 +211,7 @@ export default function Product({ product, ratings }) {
                                 starRatedColor="rgba(251, 191, 36)"
                                 starEmptyColor="rgba(209, 213, 219)"
                                 starDimension="20px"
-                                starSpacing="2px"
+                                starSpacing="1px"
                                 isAggregateRating={true}
                             />
                         </div>
@@ -214,17 +227,26 @@ export default function Product({ product, ratings }) {
                                 {numberWithCommas(product.price)}đ
                             </div>
                             <div className="text-4xl font-normal text-gray-700 mb-4">
-                                {numberWithCommas(product.price - Math.floor(product.price * product.discount / 100))}đ ({product.discount}%)
+                                {numberWithCommas(calcSingleItemPrice(product))}đ
                             </div>
                         </>
                     )}
                     <div className="w-8/12 mr-4 mb-3">
-                        <Button onClick={onAppend} loading={loading} white>
-                            THÊM VÀO GIỎ HÀNG
+                        <Button disable={product.quantity === 0} onClick={onAppend} loading={loading} white>
+                            {product.quantity !== 0 ? "THÊM VÀO GIỎ HÀNG" : "HẾT HÀNG"}
                         </Button>
+                        {auth && auth.role !== UserRole.USER && (
+                            <div>
+                                <Link href={`/admin/products/${product.slug}`}>
+                                    <a className="block btn dark mt-3">
+                                        Chỉnh sửa sản phẩm
+                                    </a>
+                                </Link>
+                            </div>
+                        )}
                     </div>
                     <button onClick={onWishlist}>
-                        {!wishlistLoading ?
+                        {!(addWishlistMutate.isLoading || removeWishlistMutate.isLoading) ?
                             (isWishlisted
                                 ? <AiFillHeart className='inline-block' size={24} />
                                 : <AiOutlineHeart className='inline-block' size={24} />)
@@ -234,26 +256,148 @@ export default function Product({ product, ratings }) {
                             {isWishlisted ? "Đã thêm vào yêu thích" : "Thêm vào yêu thích"}
                         </span>
                     </button>
+                    <div className="mt-2">
+                        <Switch.Group>
+                            <div className="flex items-center">
+                                <Switch
+                                    checked={compare}
+                                    onChange={setCompare}
+                                    className={`${compare ? 'bg-dark' : 'bg-gray-200'}
+                                    relative inline-flex items-center h-5 rounded-full w-9 transition-colors focus:outline-none`}
+                                >
+                                    <span
+                                        className={`${compare ? 'translate-x-5' : 'translate-x-1'
+                                            } inline-block w-3 h-3 transform bg-white rounded-full transition-transform`}
+                                    />
+                                </Switch>
+                                <Switch.Label className="ml-2 text-sm font-medium">So sánh</Switch.Label>
+                            </div>
+                        </Switch.Group>
+                    </div>
                 </div>
             </div>
             <hr className="my-4" />
             <div className="mb-2">
-                <h4 className="text-xl font-bold mb-2">Mô tả sản phẩm</h4>
-                <div className="py-2 px-4 text-justify font-medium max-w-3xl bg-gray-100 space-y-1 divide-y whitespace-pre-line">
-                    {product.description}
-                </div>
-            </div>
-            <hr className="my-4" />
-            <div className="mb-2">
-                <h4 className="text-xl font-bold mb-2">Thông số kỹ thuật</h4>
-                <div className="px-8 py-2 bg-gray-100 max-w-3xl space-y-1">
-                    {product.specifications && product.specifications.map(spec => (
-                        <div className="flex py-1">
-                            <div className="w-1/2 flex-shrink-0 flex items-center">{spec.name}:</div>
-                            <div className="font-semibold">{spec.info}</div>
-                        </div>
+                <div className="flex">
+                    {[{ title: "Mô tả sản phẩm", value: content.DESCRIPTION },
+                    { title: "Thông số sản phẩm", value: content.SPECIFICATION },
+                    { title: "Đánh giá", value: content.REVIEW }].map(section => (
+                        <button
+                            key={`section${section.title}`}
+                            className={classNames("py-2 px-6 rounded-none", {
+                                "bg-black text-white font-medium": showContent === section.value
+                            })}
+                            onClick={() => setShowContent(section.value)}
+                        >
+                            {section.title}
+                        </button>
                     ))}
                 </div>
+                <div className="h-[1.5px] bg-black"></div>
+            </div>
+            <div className="bg-gray-100 py-3 px-2">
+                <SwitchTransition>
+                    <CSSTransition timeout={120} key={showContent}
+                        addEndListener={(node, done) => {
+                            node.addEventListener("transitionend", done, false);
+                        }}
+                        classNames="fade">
+                        <div>
+                            {showContent === content.DESCRIPTION &&
+                                <div className="unreset px-4 text-justify">
+                                    <ShowMore height={400}>
+                                        <div className="mce">
+                                            {ReactHtmlParser(product.description)}
+                                        </div>
+                                    </ShowMore>
+                                </div>
+                            }
+                            {showContent === content.SPECIFICATION &&
+                                <ShowMore height={400}>
+                                    <div className="px-4 bg-gray-100 space-y-1 divide-y divide-gray-300">
+                                        {product.specifications && product.specifications.map(section => (
+                                            <div key={section.name} className="py-2">
+                                                <div className="text-xl font-bold mb-2 text-black">{section.name}</div>
+                                                <div className="space-y-2 text-[15px]">
+                                                    {section.specs.map(spec => {
+                                                        const splittedDetail = spec.detail.split('\n')
+                                                        return (
+                                                            <div key={spec.title} className="font-semibold flex">
+                                                                <div className="text-gray-500 w-60">{spec.title}:</div>
+                                                                {splittedDetail.length === 1 && <div className="text-gray-800">{spec.detail}</div>}
+                                                                {splittedDetail.length > 1 && (
+                                                                    <ul className="text-gray-800">
+                                                                        {splittedDetail.map((detail, index) => (
+                                                                            <li key={section.name + spec.title + index} className="list-disc list-inside">{detail}</li>
+                                                                        ))}
+                                                                    </ul>
+                                                                )}
+                                                            </div>
+                                                        )
+                                                    })}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </ShowMore>
+                            }
+                            {showContent === content.REVIEW &&
+                                (<>
+                                    {!auth ? (
+                                        <div className="bg-gray-100 p-3 mb-2">
+                                            Đăng nhập để đánh giá sản phẩm!
+                                        </div>
+                                    ) : (
+                                        <form onSubmit={onRating} className="relative bg-gray-100 p-3 text-sm font-semibold space-y-2">
+                                            {ratingLoading &&
+                                                <div className="absolute inset-0 flex-center z-10 bg-dark bg-opacity-20">
+                                                    <LoadingIcon />
+                                                </div>
+                                            }
+                                            <div>
+                                                <div className="mb-2">Điểm số:</div>
+                                                <StarRatings
+                                                    rating={rating}
+                                                    starDimension="25px"
+                                                    starRatedColor="rgb(255,208,85)"
+                                                    starHoverColor="rgb(255,208,85)"
+                                                    starEmptyColor="rgb(209,209,209)"
+                                                    changeRating={setRating}
+                                                />
+                                            </div>
+                                            <div>
+                                                <div className="mb-2">Nhận xét:</div>
+                                                <textarea required rows={3} minLength={20}
+                                                    value={ratingContent} onChange={e => setRatingContent(e.target.value)}
+                                                    placeholder="Tối thiểu 20 kí tự"
+                                                    className="resize-none w-full shadow p-3 text-gray-600"></textarea>
+                                            </div>
+                                            <div className="w-24 ml-auto">
+                                                <Button>Đăng</Button>
+                                            </div>
+                                        </form>
+                                    )}
+                                    <div className="divide-y-2">
+                                        {ratings.length === 0 ? (
+                                            <div className="h-40 flex-center font-medium text-xl">
+                                                Chưa có đánh giá
+                                            </div>
+                                        ) :
+                                            ratings.slice(0, showRating).map(rating => (<UserReview rating={rating} />))
+                                        }
+                                    </div>
+                                    {showRating < ratings.length &&
+                                        <div className="max-w-md mx-auto">
+                                            <Button loading={showRatingLoading} onClick={onMoreRating} white>
+                                                Tải thêm
+                                            </Button>
+                                        </div>
+                                    }
+                                </>)
+                            }
+                        </div>
+                    </CSSTransition>
+                </SwitchTransition>
             </div>
             <hr className="my-4" />
             <div className="mb-2">
@@ -266,60 +410,6 @@ export default function Product({ product, ratings }) {
                     <ProductCard product={product} />
                 </div>
             </div>
-            <hr className="mb-4" />
-            <div className="mb-2 max-w-3xl">
-                <h4 className="text-xl font-bold mb-2">Đánh giá</h4>
-                {!auth ? (
-                    <div className="bg-gray-100 p-3 mb-2">
-                        Đăng nhập để đánh giá sản phẩm!
-                    </div>
-                ) : (
-                    <form onSubmit={onRating} className="relative bg-gray-100 p-3 text-sm font-semibold space-y-2">
-                        {ratingLoading &&
-                            <div className="absolute inset-0 flex-center z-10 bg-dark bg-opacity-20">
-                                <LoadingIcon />
-                            </div>
-                        }
-                        <div>
-                            <div className="mb-2">Điểm số:</div>
-                            <StarRatings
-                                rating={rating}
-                                starDimension="25px"
-                                starRatedColor="rgb(255,208,85)"
-                                starHoverColor="rgb(255,208,85)"
-                                starEmptyColor="rgb(209,209,209)"
-                                changeRating={setRating}
-                            />
-                        </div>
-                        <div>
-                            <div className="mb-2">Nhận xét:</div>
-                            <textarea required rows={3} minLength={20}
-                                value={ratingContent} onChange={e => setRatingContent(e.target.value)}
-                                placeholder="Tối thiểu 20 kí tự"
-                                className="resize-none w-full shadow p-3 text-gray-600"></textarea>
-                        </div>
-                        <div className="w-24 ml-auto">
-                            <Button>Đăng</Button>
-                        </div>
-                    </form>
-                )}
-                <div className="divide-y-2">
-                    {ratings.length === 0 ? (
-                        <div className="h-40 flex-center font-medium text-xl">
-                            Chưa có đánh giá
-                        </div>
-                    ) :
-                        ratings.slice(0, showRating).map(rating => (<UserReview rating={rating} />))
-                    }
-                </div>
-                {showRating < ratings.length &&
-                    <div className="max-w-md mx-auto">
-                        <Button loading={showRatingLoading} onClick={onMoreRating} white>
-                            Tải thêm
-                        </Button>
-                    </div>
-                }
-            </div>
-        </Layout>
+        </Layout >
     )
 }

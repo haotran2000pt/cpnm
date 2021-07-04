@@ -8,7 +8,7 @@ const handler = async (req, res) => {
             const res = await firebaseAdmin.auth().listUsers(1000)
 
             users = res.users.reduce((filtered, userRecord) => {
-                if (userRecord.email !== 'admin@admin.page') {
+                if (userRecord.email !== 'admin@cnpm.skpt.com') {
                     filtered.push({
                         email: userRecord.email,
                         uid: userRecord.uid,
@@ -27,7 +27,8 @@ const handler = async (req, res) => {
                 return {
                     ...user,
                     name: basicInfo.data().name,
-                    phone: basicInfo.data().phone || "Chưa cập nhật"
+                    phone: basicInfo.data().phone || "Chưa cập nhật",
+                    role: basicInfo.data().role
                 }
             }))
 

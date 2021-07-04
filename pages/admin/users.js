@@ -78,6 +78,7 @@ export default function Users() {
                                     <th>Tên khách hàng</th>
                                     <th>Số điện thoại</th>
                                     <th>Email</th>
+                                    <th>Vai trò</th>
                                     <th>Số đơn đã giao</th>
                                     <th>Tổng chi tiêu</th>
                                     <th>Ngày đăng ký</th>
@@ -92,6 +93,9 @@ export default function Users() {
                                         <td className="py-2 pl-2">{row.name}</td>
                                         <td>{row.phone}</td>
                                         <td>{row.email}</td>
+                                        <td className="pr-2">
+                                            <span className="bg-blue-500 text-white text-center font-semibold p-1 rounded-md w-full inline-block">{row.role}</span>
+                                        </td>
                                         <td>{numberWithCommas(row.orders)}</td>
                                         <td>{numberWithCommas(row.total_spend)}</td>
                                         <td>{row.create_date}</td>
@@ -103,7 +107,7 @@ export default function Users() {
                                             })}
                                                 className="bg-red-500 hover:bg-red-600 text-white font-bold px-4 py-2 rounded-xl">
                                                 Xóa
-                                        </button>
+                                            </button>
                                         </td>
                                     </tr>
                                 ))}

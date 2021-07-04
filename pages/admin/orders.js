@@ -4,7 +4,7 @@ import { useState } from "react";
 import { AiOutlineSearch } from "react-icons/ai";
 import OrderModal from "../../components/Admin/Order/OrderModal";
 import BetterReactModal from "../../components/common/BetterReactModal";
-import useOrders from "../../hooks/query/useOrders";
+import useOrders from "../../lib/query/useOrders";
 import AdminLayout from "../../layouts/AdminLayout";
 import numberWithCommas from "../../utils/numberWithCommas";
 import { calcListItemPrice } from "../../utils/priceCalc";

@@ -1,10 +1,12 @@
 import classNames from "classnames"
-import { useFieldArray } from "react-hook-form"
+import { Editor } from '@tinymce/tinymce-react';
 import { BiPlus } from "react-icons/bi"
 import { categories } from "../../../constants/category"
 import moveItem from "../../../utils/moveArrayItem"
 import Input, { Error, Label } from "../common/Input"
 import Container from "./Container"
+import { useEffect, useRef, useState } from "react"
+import { Controller, useFormContext } from "react-hook-form";
 
 const ImageButton = ({ images, setImages }) => {
     const handleChange = (e) => {
@@ -24,9 +26,10 @@ const ImageButton = ({ images, setImages }) => {
     )
 }
 
-const BasicInfo = ({ form, control, images, setImages }) => {
-    const { register, formState: { errors }, watch } = form
-    const watchDescription = watch('description', '')
+const BasicInfo = ({ images, setImages }) => {
+    const { register, formState: { errors }, watch } = useFormContext()
+    const [editor, setEditor] = useState(null)
+    const editorRef = useRef(null);
 
     const handleBringToFront = (position) => {
         if (position !== 0)
@@ -48,16 +51,21 @@ const BasicInfo = ({ form, control, images, setImages }) => {
         setImages(newImageList)
     }
 
+    useEffect(() => {
+        setEditor(watch('description') || "")
+    }, [])
+
     return (
         <Container name="Thông tin cơ bản">
             <div className="mb-3 flex space-x-8">
-                <div className="max-w-xl flex-auto space-y-2">
+                <div className="flex-1 space-y-2">
                     <Input htmlFor="name" label="Tên sản phẩm"
                         error={errors.name && "Vui lòng nhập tên sản phẩm"}
                         inputProps={register("name")}
+                        placeholder="iPhone 12 256GB Blue, iPhone 11 Pro 128GB Black,..."
                     />
                 </div>
-                <div className="flex-auto space-y-2">
+                <div className="flex-1 space-y-2">
                     <Label>Danh mục sản phẩm</Label>
                     <div>
                         <select {...register("category")}
@@ -69,6 +77,22 @@ const BasicInfo = ({ form, control, images, setImages }) => {
                             ))}
                         </select>
                     </div>
+                </div>
+            </div>
+            <div className="mb-3 flex space-x-8">
+                <div className="flex-1 flex-shrink-0 space-y-2">
+                    <Input htmlFor="modelSeries" label="Dòng sản phẩm"
+                        placeholder="iPhone 11, iPhone 11 Pro,..."
+                        error={errors?.modelSeries?.message}
+                        inputProps={register("modelSeries")}
+                    />
+                </div>
+                <div className="flex-1 space-y-2">
+                    <Input htmlFor="manufacturer" label="Hãng sản xuất"
+                        placeholder="Apple, Samsung,..."
+                        error={errors?.manufacturer?.message}
+                        inputProps={register("manufacturer")}
+                    />
                 </div>
             </div>
             <div className="mb-3 space-y-2">
@@ -90,9 +114,38 @@ const BasicInfo = ({ form, control, images, setImages }) => {
                 </div>
             </div>
             <div>
-                <div className="space-y-2">
+                <div className="space-y-2 mb-3">
                     <Label htmlFor="description">Mô tả</Label>
-                    <textarea
+                    {editor !== null &&
+                        <Controller
+                            name="description"
+                            render={({
+                                field: { onChange },
+                            }) => (
+                                <Editor
+                                    initialValue={editor}
+                                    onChange={(e) => onChange(e.target.getContent())}
+                                    apiKey="b9r8i99deo0udse2jp8msxye7gc5qfakqllxjzw0a1ccbqql"
+                                    onInit={(evt, editor) => editorRef.current = editor}
+                                    init={{
+                                        height: 500,
+                                        menubar: true,
+                                        plugins: [
+                                            'advlist autolink lists link image preview anchor',
+                                            'visualblocks code fullscreen',
+                                            'insertdatetime media table paste code help wordcount'
+                                        ],
+                                        toolbar: 'undo redo | formatselect | ' +
+                                            'bold italic backcolor | link image | alignleft aligncenter ' +
+                                            'alignright alignjustify | bullist numlist outdent indent | ' +
+                                            'removeformat | help',
+                                        content_style: 'body { font-family:"Quicksand", sans-serif; font-size:14px }'
+                                    }}
+                                />
+                            )}
+                        />
+                    }
+                    {/* <textarea
                         maxLength="2000"
                         {...register('description')}
                         id="description"
@@ -100,14 +153,11 @@ const BasicInfo = ({ form, control, images, setImages }) => {
                         className={classNames('admin-input resize-none', {
                             'border-red-400': errors.description
                         })}
-                    />
+                    /> */}
                 </div>
                 <div className="flex justify-between">
                     <div>
                         {errors.description && <Error>Mô tả không được để trống và có ít nhất 50 kí tự.</Error>}
-                    </div>
-                    <div className="text-right mb-1 text-gray-400 font-normal text-xs">
-                        {watchDescription?.length || 0}/2000
                     </div>
                 </div>
             </div>
@@ -149,7 +199,7 @@ const BasicInfo = ({ form, control, images, setImages }) => {
                     })}
                 </div>
             </div>
-        </Container>
+        </Container >
     )
 }
 

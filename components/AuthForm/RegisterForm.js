@@ -1,11 +1,11 @@
+import { yupResolver } from "@hookform/resolvers/yup"
 import axios from "axios"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
-import { useAuth } from "../../lib/auth"
+import * as yup from 'yup'
+import firebase from '../../lib/firebase'
 import Button from "../common/Button"
 import Input from "../common/Input"
-import * as yup from 'yup'
-import { yupResolver } from "@hookform/resolvers/yup"
 
 const schema = yup.object().shape({
     name: yup.string().required('Không thể để trống'),
@@ -16,7 +16,7 @@ const schema = yup.object().shape({
 })
 
 
-export default function RegisterForm({ toLogin }) {
+export default function RegisterForm({ modalClose }) {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
     const { register, handleSubmit, formState: { errors } } = useForm({
@@ -28,8 +28,9 @@ export default function RegisterForm({ toLogin }) {
         try {
             setError('')
             await axios.post('/api/register', data)
+            await firebase.auth().signInWithEmailAndPassword(data.email, data.password)
+            modalClose()
             alert('Đăng ký thành công!')
-            toLogin()
         } catch (error) {
             setError(error.response?.data?.message || "Lỗi máy chủ")
         }

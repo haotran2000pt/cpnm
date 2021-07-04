@@ -4,13 +4,13 @@ import { useRouter } from "next/router"
 import { useState } from "react"
 import { AiOutlineClose } from "react-icons/ai"
 import { GoAlert } from "react-icons/go"
+import { store } from "react-notifications-component"
+import firebase from '../../lib/firebase'
 import numberWithCommas from "../../utils/numberWithCommas"
 import { calcSingleItemPrice } from "../../utils/priceCalc"
 import BetterReactModal from "../common/BetterReactModal"
 import Button from '../common/Button'
 import LoadingIcon from "../common/LoadingIcon"
-import firebase from '../../lib/firebase'
-import { store } from "react-notifications-component"
 
 const Left = ({ children }) => <div className="w-32 flex-shrink-0 font-semibold">{children}</div>
 const Right = ({ children }) => <div className="flex-auto whitespace-pre-line">{children}</div>

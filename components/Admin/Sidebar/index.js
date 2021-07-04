@@ -7,8 +7,13 @@ import { RiDashboardLine } from "react-icons/ri";
 import { BiDevices } from "react-icons/bi";
 import { useAuth } from "../../../lib/auth";
 import { MdLockOutline } from "react-icons/md";
+import useGlobal from "../../../lib/query/useGlobal";
 
 const routes = [{
+    path: '/',
+    name: 'Trang chủ',
+    icon: AiOutlineHome
+}, {
     path: '/admin/products',
     name: 'Quản lý sản phẩm',
     icon: BiDevices
@@ -30,20 +35,21 @@ const routes = [{
     icon: MdLockOutline
 }]
 
-export default function Sidebar({ setExpand }) {
+export default function Sidebar() {
     const router = useRouter()
+    const { data } = useGlobal()
     const { signOut } = useAuth()
 
     return (
         <div className="bg-admin-sidebar text-sm font-semibold text-gray-200 flex flex-col justify-between h-screen rounded-tr-3xl p-4">
             <div>
                 <div className="mb-4 h-12 w-full flex-center border-b">
-                    Logo
+                    {data.storeInfo.name}
                 </div>
                 <div className="space-y-2">
                     {routes.map(route => {
                         const Icon = route.icon
-                        const match = route.path === '/admin' ? router.pathname === '/admin' : router.asPath.includes(route.path)
+                        const match = route.path === '/' ? false : router.asPath.includes(route.path)
                         return (
                             <Link key={route.name} href={route.path}>
                                 <a className={classNames('block w-full px-4 py-3 rounded-xl', {

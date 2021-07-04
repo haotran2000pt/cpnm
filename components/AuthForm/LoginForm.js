@@ -1,32 +1,35 @@
+import { yupResolver } from "@hookform/resolvers/yup";
 import Link from "next/link";
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import * as yup from 'yup';
 import { useAuth } from "../../lib/auth";
+import firebase from '../../lib/firebase';
 import Button from "../common/Button";
 import Input from "../common/Input";
-import * as yup from 'yup'
-import { yupResolver } from "@hookform/resolvers/yup"
-import { useForm } from "react-hook-form";
 
 const schema = yup.object().shape({
     email: yup.string().required('Không thể để trống').email('Vui lòng nhập đúng định dạng'),
     password: yup.string().required('Không thể để trống').min(6, "Tối thiểu 6 kí tự"),
 })
 
-export default function LoginForm({ }) {
-    const { loading, signInWithEmailAndPassword } = useAuth()
+export default function LoginForm({ modalClose }) {
+    const { loading, setLoading } = useAuth()
     const [error, setError] = useState('')
 
     const { register, handleSubmit, formState: { errors } } = useForm({
         resolver: yupResolver(schema)
     })
 
-
     const handleLogin = async (data) => {
         try {
-            await signInWithEmailAndPassword(data.email, data.password)
+            setLoading(true)
+            await firebase.auth().signInWithEmailAndPassword(data.email, data.password)
+            modalClose()
         } catch (error) {
             setError(error?.message || error)
         }
+        setLoading(false)
     }
 
     return (

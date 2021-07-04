@@ -1,16 +1,16 @@
-import Link from "next/link";
-import { useForm } from "react-hook-form";
-import { FiChevronLeft } from "react-icons/fi";
-import AdminLayout from "../../../layouts/AdminLayout";
 import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from "yup";
-import { useState } from "react";
-import firebase from '../../../lib/firebase'
-import { store } from 'react-notifications-component';
+import Link from "next/link";
 import { useRouter } from "next/router";
-import CreateProduct from "../../../components/Admin/CreateProduct";
+import { useState } from "react";
+import { FormProvider, useForm } from "react-hook-form";
+import { FiChevronLeft } from "react-icons/fi";
+import { store } from 'react-notifications-component';
 import { v4 } from "uuid";
+import { productSchema } from ".";
+import CreateProduct from "../../../components/Admin/CreateProduct";
+import AdminLayout from "../../../layouts/AdminLayout";
 import { getProduct } from "../../../lib/db";
+import firebase from '../../../lib/firebase';
 
 export async function getServerSideProps({ params }) {
     const product = await getProduct(params.pid)
@@ -31,29 +31,28 @@ export async function getServerSideProps({ params }) {
     }
 }
 
-const schema = yup.object().shape({
-    price: yup.number().min(1000).required(),
-    name: yup.string().required().min(5),
-    description: yup.string().required().min(50).max(2000),
-    // quantity: yup.number().min(0).required(),
-    slug: yup.string().required().min(5),
-    discount: yup.number().required().min(0).max(100)
-})
-
 export default function ProductDetail({ product }) {
     const [loading, setLoading] = useState(false)
     const [images, setImages] = useState(product.images)
     const router = useRouter()
 
-    const { control, handleSubmit, reset, ...form } = useForm({
-        resolver: yupResolver(schema),
+    const methods = useForm({
+        resolver: yupResolver(productSchema),
         defaultValues: product
     })
 
-    const onSubmit = async (data) => {
+    const onSubmit = async (value) => {
+        if (value.price < value.discount) {
+            methods.setError('price', {
+                type: "other",
+                message: "Giá không thể thấp hơn khuyến mãi"
+            })
+            return;
+        }
         if (loading)
             return
         setLoading(true)
+        const { id, ...data } = value
         try {
             const imageURLs = await Promise.all(
                 images.map(async (image) => {
@@ -64,7 +63,7 @@ export default function ProductDetail({ product }) {
                     return await snapshot.ref.getDownloadURL()
                 })
             )
-            await firebase.firestore().collection('products').doc(product.id).set({
+            await firebase.firestore().collection('products').doc(id).set({
                 ...data,
                 images: imageURLs,
                 created_at: Date.now()
@@ -101,15 +100,15 @@ export default function ProductDetail({ product }) {
             </Link>
             <h1 className="text-xl font-bold mb-1">Cập nhật sản phẩm</h1>
             <h5 className="mb-4 text-lg font-medium">{product.name}</h5>
-            <CreateProduct
-                onSubmit={handleSubmit(onSubmit)}
-                form={form}
-                control={control}
-                product={product}
-                loading={loading}
-                images={images}
-                setImages={setImages}
-            />
+            <FormProvider {...methods}>
+                <CreateProduct
+                    onSubmit={methods.handleSubmit(onSubmit)}
+                    product={product}
+                    loading={loading}
+                    images={images}
+                    setImages={setImages}
+                />
+            </FormProvider>
         </AdminLayout>
     )
 }
