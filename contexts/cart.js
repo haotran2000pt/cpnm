@@ -32,7 +32,6 @@ const useProvideCart = () => {
         if (_.isEmpty(items)) {
             return []
         }
-        console.log(items)
         const data = await getProducts({
             where: [{
                 field: firebase.firestore.FieldPath.documentId(),
@@ -271,8 +270,8 @@ const useProvideCart = () => {
                 const cart = JSON.parse(localStorage.getItem('cart'))
                 setItems(cart)
             } else {
-                const cartRef = await firebase.firestore().collection('carts').doc(authUser.uid).get()
-                const dbCart = cartRef.data().cart
+                const dbCart = queryClient.getQueryData('cartItem')
+                console.log(dbCart)
                 const localCart = JSON.parse(localStorage.getItem('cart'))
                 if (localCart) {
                     let newCart = _.keyBy(dbCart, 'id')

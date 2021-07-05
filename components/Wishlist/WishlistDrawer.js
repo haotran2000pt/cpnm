@@ -2,9 +2,12 @@ import _ from 'lodash';
 import Link from 'next/link';
 import Drawer from 'rc-drawer';
 import 'rc-drawer/assets/index.css';
-import { FaHeartBroken } from 'react-icons/fa';
+import { useState } from 'react';
+import { BiTrash } from 'react-icons/bi';
+import { FaHeartBroken, FaTrash } from 'react-icons/fa';
 import { IoCloseOutline } from 'react-icons/io5';
 import { useAuth } from '../../lib/auth';
+import useRemoveWishlist from '../../lib/query/wishlist/useRemoveWishlist';
 import useWishlist from '../../lib/query/wishlist/useWishlist';
 import numberWithCommas from '../../utils/numberWithCommas';
 import { calcSingleItemPrice } from '../../utils/priceCalc';
@@ -13,6 +16,8 @@ import LoadingIcon from '../common/LoadingIcon';
 export default function WishlistDrawer({ isOpen, onClose }) {
     const { authUser } = useAuth()
     const { data, isLoading } = useWishlist()
+    const [deleteProductId, setDeleteProductId] = useState('')
+    const removeWishlistMutate = useRemoveWishlist()
 
     if (!authUser) {
         return null
@@ -45,17 +50,32 @@ export default function WishlistDrawer({ isOpen, onClose }) {
                 ) : (
                     <div className="flex-1 px-6 space-y-2 mt-2">
                         {data.map(product => (
-                            <Link key={`wishlist${product.id}`} href={"/san-pham/" + product.slug}>
-                                <a className="flex">
-                                    <div className="w-14 h-14">
-                                        <img src={product.images[0]} className="w-full h-full object-contain" />
-                                    </div>
-                                    <div className="p-2 ml-2">
-                                        <div className="font-medium">{product.name}</div>
-                                        <div className="text-sm font-semibold">{numberWithCommas(calcSingleItemPrice(product))}đ</div>
-                                    </div>
-                                </a>
-                            </Link>
+                            <div key={`wishlist${product.id}`} className="flex">
+                                <Link href={"/san-pham/" + product.slug}>
+                                    <a className="flex-1 flex">
+                                        <div className="w-14 h-14 flex-shrink-0">
+                                            <img src={product.images[0]} className="w-full h-full object-contain" />
+                                        </div>
+                                        <div className="mb-2 ml-4">
+                                            <div className="font-medium text-sm">{product.name}</div>
+                                            <div className="text-[13px] font-semibold">{numberWithCommas(calcSingleItemPrice(product))}đ</div>
+                                        </div>
+                                    </a>
+                                </Link>
+                                <div className="w-8 ml-4 flex-shrink-0 pt-2">
+                                    <button onClick={() => {
+                                        setDeleteProductId(product.id)
+                                        if (removeWishlistMutate.isLoading)
+                                            return
+                                        removeWishlistMutate.mutate(product)
+                                    }}>
+                                        {removeWishlistMutate.isLoading && deleteProductId === product.id
+                                            ? <LoadingIcon />
+                                            : <BiTrash size={20} />
+                                        }
+                                    </button>
+                                </div>
+                            </div>
                         ))}
                     </div>
                 )}

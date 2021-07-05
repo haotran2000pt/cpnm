@@ -11,6 +11,8 @@ import moment from 'moment'
 import classNames from 'classnames'
 import numberWithCommas from '../utils/numberWithCommas'
 import { calcListItemPrice, calcSingleItemPrice } from '../utils/priceCalc'
+import useOrder from '../lib/query/useOrder'
+import { useQueryClient } from 'react-query'
 
 const Header = () => (
     <div className="p-8 bg-dark text-white text-center text-xl font-semibold">
@@ -25,36 +27,25 @@ const Right = ({ children }) => (<div>{children}</div>)
 
 export default function Search() {
     const router = useRouter()
-    const [loading, setLoading] = useState(false)
-    const [order, setOrder] = useState(null)
     const [orderId, setOrderId] = useState('')
+    const { data: order, isLoading: loading } = useOrder(orderId)
 
-    const onSearch = async (id) => {
-        router.push({
-            query: {
-                id
-            }
-        }, undefined, { shallow: true })
-
+    const onSearch = async (e) => {
+        e.preventDefault()
+        const id = e.target.orderId.value
         if (_.isEmpty(id)) {
             alert('Mã đơn hàng không thể để trống')
             return
         }
-        setOrder(null)
-        setLoading(true)
-        const order = await firebase.firestore().collection('orders').doc(id).get()
-        if (order.exists) {
-            console.log(id)
-            setOrder({ ...order.data(), created_at: _.last(order.data().history).created_at, id: order.id })
-        } else {
-            setOrder({})
-        }
-        setLoading(false)
+        router.push({
+            query: { id }
+        }, undefined, { shallow: true })
+        setOrderId(id)
     }
 
     useEffect(() => {
         if (router.isReady && router.query.id) {
-            onSearch(router.query.id)
+            setOrderId(router.query.id)
         }
     }, [router.isReady])
 
@@ -64,7 +55,7 @@ export default function Search() {
                 <title>Kiểm tra đơn hàng</title>
             </Head>
             <div className="my-20">
-                <div className="flex space-x-3 border border-dark p-3 items-center relative">
+                <form onSubmit={e => onSearch(e)} className="flex space-x-3 border border-dark p-3 items-center relative">
                     <div className="font-semibold">
                         Mã đơn hàng (VD: GF4E1V38HeBCpss4Z4F5)
                         {loading && (
@@ -74,17 +65,15 @@ export default function Search() {
                         )}
                     </div>
                     <div className="flex-1">
-                        <input
-                            value={orderId} onChange={e => setOrderId(e.target.value)}
-                            className="w-full h-full bg-gray-200 p-2" />
+                        <input name="orderId" className="w-full h-full bg-gray-200 p-2" />
                     </div>
                     <div>
-                        <Button onClick={() => onSearch(orderId)}>
+                        <Button>
                             <AiOutlineSearch />
                         </Button>
                     </div>
-                </div>
-                {_.isNull(order)
+                </form>
+                {_.isNull(order) || loading
                     ? null
                     : _.isEmpty(order) ? (
                         <div className="mt-2 p-4 bg-gray-100">
@@ -146,7 +135,7 @@ export default function Search() {
                                 <table className="w-full">
                                     <tr>
                                         <th className="pb-2 text-left">Sản phẩm</th>
-                                        <th>Số lượng</th>
+                                        <th className="w-[100px]">Số lượng</th>
                                         <th className="text-right">Đơn giá</th>
                                     </tr>
                                     <tbody>

@@ -4,7 +4,7 @@ import Footer from "../components/Footer";
 import Header from "../components/Header/Header";
 
 export default function Layout({ children, aboveComponent, noCompare }) {
-    return <div>
+    return <div className="min-w-[1400px]">
         <Header />
         {aboveComponent &&
             <div className="mb-3">

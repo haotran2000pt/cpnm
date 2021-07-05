@@ -1,35 +1,30 @@
 import moment from 'moment'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { AiOutlineShoppingCart } from 'react-icons/ai'
 import BetterReactModal from '../../components/common/BetterReactModal'
 import LoadingIcon from '../../components/common/LoadingIcon'
 import UserOrderModal from '../../components/Order/UserOrderModal'
 import UserLayout from '../../layouts/UserLayout'
 import { useAuth } from '../../lib/auth'
-import firebase from '../../lib/firebase'
+import useOrders from '../../lib/query/useOrders'
 import numberWithCommas from '../../utils/numberWithCommas'
 
 export default function UserHistory() {
-    const [orders, setOrders] = useState(null)
     const [showOrder, setShowOrder] = useState(null)
-    const { auth } = useAuth()
-
-    useEffect(async () => {
-        if (auth) {
-            const res = await firebase.firestore()
-                .collection('orders')
-                .where('uid', '==', auth.id)
-                .get()
-            const data = res.docs.map(doc => ({ id: doc.id, ...doc.data() }))
-            setOrders(data)
-        }
-    }, [auth])
-
+    const { authUser: auth } = useAuth()
+    const { data: orders, isLoading } = useOrders({
+        where: [{
+            field: "uid",
+            op: "==",
+            value: auth.uid
+        }]
+    })
+    
     return (
         <UserLayout>
             <div className="border border-gray-400 shadow-md p-2">
                 <h2 className="text-xl font-medium border-b pb-2 mb-2">Lịch sử mua hàng</h2>
-                {!orders ? (
+                {isLoading ? (
                     // Loading
                     <div className="h-60 flex-center">
                         <LoadingIcon />

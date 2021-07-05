@@ -1,6 +1,8 @@
+import classNames from "classnames"
 import Link from "next/link"
 import { useState } from "react"
-import { AiOutlineClose } from "react-icons/ai"
+import { AiOutlineClose, AiOutlinePlus } from "react-icons/ai"
+import { useQueryClient } from "react-query"
 import { useDispatch, useSelector } from "react-redux"
 import useCompare from "../../../lib/query/useCompare"
 import { clearCompare, removeCompare } from "../../../lib/redux/slices/compareSlice"
@@ -11,6 +13,7 @@ import { LoadingPage } from "../../common/LoadingPage"
 const CompareOverlay = ({ onClose }) => {
     const { isLoading, data } = useCompare()
     const dispatch = useDispatch()
+    const queryClient = useQueryClient()
 
     const onCompare = (e) => {
         if (data && data.length === 1)
@@ -18,34 +21,47 @@ const CompareOverlay = ({ onClose }) => {
     }
 
     return (
-        <div className="text-white fixed z-20 h-[160px] space-x-4 bg-black bg-opacity-80 left-0 bottom-0 w-full flex-center flex-row">
+        <div className="text-white fixed z-20 h-[140px] space-x-4 bg-black bg-opacity-80 left-0 bottom-0 w-full flex-center flex-row">
             {isLoading ? <LoadingPage />
-                : data.map(product => (
-                    <div key={`compare${product.sku}`} className="relative text-black text-[11.5px] h-[120px] w-[120px] rounded-xl
-                    overflow-hidden border border-gray-500 bg-white flex flex-col items-center p-2 text-center">
-                        <img src={product.images[0]} className="w-10 h-10" />
-                        <div className="font-semibold">
-                            <Link href={`/san-pham/${product.slug}`}>
-                                <a>
-                                    {product.name}
-                                </a>
-                            </Link>
+                : _.range(4).map(index => {
+                    const product = data[index]
+                    return (
+                        <div
+                            key={`compare${index}}`}
+                            className={classNames("relative h-[110px] w-[110px] rounded-xl overflow-hidden border border-gray-500", {
+                                "bg-white flex flex-col items-center p-2 text-center text-black text-[11.5px]": product,
+                                "flex-center border-gray-400 text-gray-400": !product
+                            })}>
+                            {product ?
+                                <>
+                                    <img src={product.images[0]} className="w-8 h-8 flex-shrink-0 object-contain" />
+                                    <div className="font-semibold">
+                                        <Link href={`/san-pham/${product.slug}`}>
+                                            <a>
+                                                {product.name}
+                                            </a>
+                                        </Link>
+                                    </div>
+                                    <div className="font-medium">{numberWithCommas(calcSingleItemPrice(product))}đ</div>
+                                    <button
+                                        onClick={() => dispatch(removeCompare({ product, queryClient }))}
+                                        className="absolute top-2 right-2">
+                                        <AiOutlineClose size={14} />
+                                    </button>
+                                </>
+                                : (
+                                    <AiOutlinePlus size={30} />
+                                )}
                         </div>
-                        <div className="font-medium">{numberWithCommas(calcSingleItemPrice(product))}đ</div>
-                        <button
-                            onClick={() => dispatch(removeCompare(product))}
-                            className="absolute top-2 right-2">
-                            <AiOutlineClose size={14} />
-                        </button>
-                    </div>
-                ))
+                    )
+                })
             }
             <button className="text-sm" onClick={onClose}>ĐÓNG</button>
             <Link href="/compare">
                 <button onClick={onCompare} className="font-medium border border-white py-1 px-2">SO SÁNH</button>
             </Link>
             <button
-                onClick={() => dispatch(clearCompare())}
+                onClick={() => dispatch(clearCompare(queryClient))}
                 className="font-medium border border-white py-1 px-2">
                 XÓA HẾT
             </button>

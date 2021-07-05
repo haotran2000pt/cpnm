@@ -87,7 +87,8 @@ export default function Orders() {
                                         <td>{row.status}</td>
                                         <td>{numberWithCommas(calcListItemPrice(row.items))}đ</td>
                                     </tr>
-                                ))}
+                                ))
+                            }
                         </tbody>
                     </table>
                 </div>

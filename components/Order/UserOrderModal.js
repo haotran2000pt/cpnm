@@ -121,7 +121,7 @@ const UserOrderModal = ({ order, onClose }) => {
                                         <div className="w-16 h-16">
                                             <img src={item.product.images[0]} className="w-full h-full object-contain" />
                                         </div>
-                                        <div className="flex items-center ml-2">{item.product.name}</div>
+                                        <div className="flex items-center mx-2">{item.product.name}</div>
                                     </td>
                                     <td>{item.quantity}</td>
                                     <td>{numberWithCommas(calcSingleItemPrice(item.product) * item.quantity)}đ</td>

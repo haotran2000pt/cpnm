@@ -10,11 +10,14 @@ import LoadingIcon from "../../common/LoadingIcon"
 import firebase from '../../../lib/firebase'
 import { productStatus } from "../../../constants/product"
 import _ from "lodash"
+import { useAuth } from "../../../lib/auth"
+import { UserRole } from "../../../constants/user"
 
 const Left = ({ children }) => <div className="w-28 flex-shrink-0 font-semibold text-blue-800">{children}</div>
 const Right = ({ children }) => <div className="flex-auto whitespace-pre-line">{children}</div>
 
 const OrderModal = ({ order, onClose, refetch }) => {
+    const { authUser } = useAuth()
     const [update, setUpdate] = useState('')
     const [updateLoading, setUpdateLoading] = useState(false)
     if (!order) return null
@@ -212,22 +215,21 @@ const OrderModal = ({ order, onClose, refetch }) => {
                 </div>
             </div>
             <div className="text-right space-x-4 mx-8 mb-2 text-sm">
+                <button onClick={onClose} className="p-2 font-bold text-gray-500 hover:bg-gray-300 bg-gray-200 w-24 rounded-md">
+                    Đóng
+                </button>
                 {
-                    order.status === 'Đã hủy' || order.status === 'Đã giao' ? (
-                        <button onClick={onClose} className="p-2 font-bold text-gray-500 hover:bg-gray-300 bg-gray-200 w-24 rounded-md">
-                            Đóng
+                    !(order.status === 'Đã hủy' || order.status === 'Đã giao') && authUser.role !== UserRole.MODERATOR &&
+                    <>
+                        <button onClick={() => setUpdate('CANCEL')} className="p-2 bg-red-500 hover:bg-red-600 rounded-md text-white font-semibold">
+                            Hủy đơn
                         </button>
-                    ) : (
-                        <>
-                            <button onClick={() => setUpdate('CANCEL')} className="p-2 bg-red-500 hover:bg-red-600 rounded-md text-white font-semibold">
-                                Hủy đơn
-                            </button>
-                            <button onClick={() => setUpdate('UPDATE')} className="p-2 rounded-md text-blue-600 font-semibold" >
-                                Cập nhật trạng thái
-                            </button>
-                        </>
-                    )}
-            </div>
+                        <button onClick={() => setUpdate('UPDATE')} className="p-2 rounded-md text-blue-600 font-semibold" >
+                            Cập nhật trạng thái
+                        </button>
+                    </>
+                }
+            </div >
             <BetterReactModal
                 isOpen={update}
                 onClose={() => setUpdate('')}
@@ -293,7 +295,7 @@ const OrderModal = ({ order, onClose, refetch }) => {
                     )}
                 </div>
             </BetterReactModal>
-        </div>
+        </div >
     )
 }
 

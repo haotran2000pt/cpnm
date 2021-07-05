@@ -13,7 +13,6 @@ import { useAuth } from '../../lib/auth'
 import CategoryDropdown from './CategoryDropdown'
 import UserMenu from './UserMenu'
 import { useCart } from '../../contexts/cart'
-import { useQueryClient } from 'react-query'
 import useGlobal from '../../lib/query/useGlobal'
 import _ from 'lodash'
 import { UserRole } from '../../constants/user'
@@ -36,6 +35,7 @@ export default function Header() {
     const [showUserMenu, setShowUserMenu] = useState(false)
 
     const { authUser, loading } = useAuth()
+    const { items, isLoading } = useCart()
 
     const categoriesRef = useRef(null)
     const userMenuRef = useRef(null)
@@ -124,13 +124,15 @@ export default function Header() {
                             Kiểm tra đơn hàng
                         </a>
                     </Link>
-                    <button onClick={() => setShowCheckout(true)} className="mr-5 flex">
+                    <button onClick={() => setShowCheckout(true)} className="mr-5 flex relative">
                         <AiOutlineShopping />
-                        <span className="text-xs mt-auto ml-1 font-bold">
-                            {/* {items && items.reduce((acc, cur) => {
-                                return acc + cur.quantity
-                            }, 0)} */}
-                        </span>
+                        {!_.isEmpty(items) &&
+                            <span className="text-xs font-bold absolute bg-black text-white leading-3 rounded-full p-px w-4 h-4 flex-center -bottom-1 -right-1 block">
+                                {items.reduce((acc, cur) => {
+                                    return acc + cur.quantity
+                                }, 0)}
+                            </span>
+                        }
                     </button>
                     {authUser && (
                         <button onClick={() => setShowWishList(true)} className="mr-5 flex">

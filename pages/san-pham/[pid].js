@@ -21,7 +21,7 @@ import { UserRole } from "../../constants/user";
 import { useCart } from "../../contexts/cart";
 import Layout from "../../layouts/Layout";
 import { useAuth } from "../../lib/auth";
-import { getProduct } from "../../lib/db";
+import { getProduct, getProducts } from "../../lib/db";
 import firebase from "../../lib/firebase";
 import { firebaseAdmin } from '../../lib/firebase-admin';
 import useAddWishlist from "../../lib/query/wishlist/useAddWishlist";
@@ -32,6 +32,7 @@ import { calcSingleItemPrice } from "../../utils/priceCalc";
 import { Switch } from '@headlessui/react'
 import { useDispatch, useSelector } from "react-redux";
 import { addCompare, removeCompare } from "../../lib/redux/slices/compareSlice";
+import { useQueryClient } from "react-query";
 
 SwiperCore.use([Thumbs]);
 
@@ -42,6 +43,53 @@ export async function getServerSideProps({ params }) {
         return {
             notFound: true
         }
+    }
+
+    const variants = await getProducts({
+        where: [{
+            field: "modelSeries",
+            op: "==",
+            value: product.modelSeries
+        }],
+        order: [{
+            field: "name",
+            direct: "desc"
+        }]
+    })
+
+    let related = await getProducts({
+        where: [{
+            field: "category",
+            op: "==",
+            value: product.category
+        }, {
+            field: "manufacturer",
+            op: "==",
+            value: product.manufacturer
+        }, {
+            field: firebase.firestore.FieldPath.documentId(),
+            op: "!=",
+            value: product.id
+        }],
+        limit: 5
+    })
+
+    const relatedLeft = 5 - related.length
+
+    if (relatedLeft >= 1) {
+        const newRelated = await getProducts({
+            where: [{
+                field: "category",
+                op: "==",
+                value: product.category
+            }, {
+                field: firebase.firestore.FieldPath.documentId(),
+                op: "!=",
+                value: product.id
+            }],
+            limit: relatedLeft
+        })
+        related = related.concat(newRelated)
     }
 
     const ratingsSnapshot = await firebaseAdmin
@@ -62,7 +110,7 @@ export async function getServerSideProps({ params }) {
 
     return {
         props: {
-            product, ratings
+            product, ratings, variants, related
         }
     }
 }
@@ -73,7 +121,7 @@ const content = {
     REVIEW: 'review'
 }
 
-export default function Product({ product, ratings }) {
+export default function Product({ product, ratings, variants, related }) {
     const compare = useSelector(state => state.compare.products.some(compareProduct => compareProduct === product.id))
     const { append } = useCart()
     const { authUser: auth } = useAuth()
@@ -88,13 +136,14 @@ export default function Product({ product, ratings }) {
     const [showRatingLoading, setShowRatingLoading] = useState(false)
     const [showContent, setShowContent] = useState(content.DESCRIPTION)
     const router = useRouter()
+    const queryClient = useQueryClient()
     const dispatch = useDispatch()
 
     const setCompare = () => {
         if (compare) {
-            dispatch(removeCompare(product))
+            dispatch(removeCompare({ product, queryClient }))
         } else {
-            dispatch(addCompare(product))
+            dispatch(addCompare({ product, queryClient }))
         }
     }
 
@@ -198,11 +247,13 @@ export default function Product({ product, ratings }) {
                     <ProductImageGallery images={product.images} />
                 </div>
                 <div className="flex-1 p-3">
-                    <Link href={"/" + product.category}>
-                        <a className="underline font-medium mb-1 block">
-                            {categories[product.category].name}
-                        </a>
-                    </Link>
+                    <div className="mb-1">
+                        <Link href={"/" + product.category}>
+                            <a className="underline font-medium">
+                                {categories[product.category].name}
+                            </a>
+                        </Link>
+                    </div>
                     <h3 className="text-4xl font-medium mb-1">{product.name}</h3>
                     <div className="mb-4">
                         <div className="inline-flex space-x-0.5 align-middle text-yellow-400">
@@ -230,6 +281,20 @@ export default function Product({ product, ratings }) {
                                 {numberWithCommas(calcSingleItemPrice(product))}đ
                             </div>
                         </>
+                    )}
+                    {variants && variants.length > 1 && (
+                        <div className="my-2 flex flex-wrap">
+                            {variants.map(variant => (
+                                <Link key={`variant${variant.name}`} href={`/san-pham/${variant.slug}`}>
+                                    <a className={classNames("mr-2 p-2 text-[13px] font-medium mb-2", {
+                                        "border-dark border-[1.75px]": variant.id === product.id,
+                                        "hover:bg-gray-200 border-gray-300 border": variant.id !== product.id
+                                    })}>
+                                        {variant.name}
+                                    </a>
+                                </Link>
+                            ))}
+                        </div>
                     )}
                     <div className="w-8/12 mr-4 mb-3">
                         <Button disable={product.quantity === 0} onClick={onAppend} loading={loading} white>
@@ -403,11 +468,16 @@ export default function Product({ product, ratings }) {
             <div className="mb-2">
                 <h4 className="text-xl font-bold mb-2">Các sản phẩm tương tự</h4>
                 <div className="flex -mx-2">
-                    <ProductCard product={product} />
-                    <ProductCard product={product} />
-                    <ProductCard product={product} />
-                    <ProductCard product={product} />
-                    <ProductCard product={product} />
+                    {_.range(5).map(index => {
+                        const product = related[index]
+                        if (!product) {
+                            return (
+                                <div key={`related${index}`} className="w-full h-full"></div>
+                            )
+                        }
+
+                        return <ProductCard key={`related${product.id}`} product={product} />
+                    })}
                 </div>
             </div>
         </Layout >

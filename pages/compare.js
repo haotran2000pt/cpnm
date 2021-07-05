@@ -11,8 +11,11 @@ import { AiOutlineClose } from "react-icons/ai";
 import { useDispatch, useSelector } from "react-redux";
 import { removeCompare } from "../lib/redux/slices/compareSlice";
 import ErrorPage from '../pages/404'
+import { useQueryClient } from "react-query";
+import ReactHtmlParser from 'react-html-parser'
 
 export default function ComparePage() {
+    const queryClient = useQueryClient()
     const products = useSelector(state => state.compare.products)
     const { isLoading, data } = useCompare()
     const [showDifferent, setShowDifferent] = useState(false)
@@ -36,10 +39,11 @@ export default function ComparePage() {
                 })
             })
         })
+
         if (showDifferent) {
             Object.keys(specifications).forEach(section => {
                 Object.keys(specifications[section]).forEach(spec => {
-                    const isSame = _.uniq(specifications[section][spec].slice(0, 2)).length === 1
+                    const isSame = _.uniq(specifications[section][spec].slice(0, products.length)).length === 1
                     if (isSame) {
                         delete specifications[section][spec]
                     }
@@ -71,7 +75,8 @@ export default function ComparePage() {
                 <>
                     <div className="flex min-h-[160px]">
                         <div className="flex-1 text-sm font-medium">
-                            So sánh <span className="font-bold">{data.map(product => product.name).join(' vs ')}</span>
+                            So sánh{' '}
+                            {ReactHtmlParser(data.map(product => `<span class="font-bold">${product.name}</span>`).join(' vs '))}
                         </div>
                         {_.range(4).map(i => {
                             const product = data[i]
@@ -86,7 +91,7 @@ export default function ComparePage() {
                                                 <img src={product.images[0]} className="w-full max-h-40 object-contain" />
                                                 {products.length !== 1 &&
                                                     <button
-                                                        onClick={() => dispatch(removeCompare(product))}
+                                                        onClick={() => dispatch(removeCompare({ queryClient, product }))}
                                                         className="absolute top-1 bg-white right-1 h-8 w-8 rounded-full border border-gray-200 shadow-md flex-center text-gray-400">
                                                         <AiOutlineClose size={20} />
                                                     </button>
@@ -138,7 +143,7 @@ export default function ComparePage() {
                                     <div className="flex-1 py-2 px-4" />
                                 </div>
                                 {Object.keys(specifications[section]).map(spec => (
-                                    <div className="flex divide-x divide-gray-300 text-[13px] mb-1 font-medium">
+                                    <div className="flex divide-x divide-gray-300 text-[13px] font-medium">
                                         <div className="flex-1 py-2 px-4 font-semibold text-sm">{spec}</div>
                                         <div className="flex-1 py-2 px-4 whitespace-pre-line">{specifications[section][spec][0] ?? ""}</div>
                                         <div className="flex-1 py-2 px-4 whitespace-pre-line">{specifications[section][spec][1] ?? ""}</div>

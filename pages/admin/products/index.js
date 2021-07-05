@@ -31,7 +31,12 @@ export const productSchema = yup.object().shape({
 })
 
 export default function Products() {
-    const { isLoading, data } = useProducts()
+    const { isLoading, data } = useProducts({
+        order: [{
+            field: "created_at",
+            direct: "desc"
+        }]
+    })
     const [search, setSearch] = useState('')
     const filtered = isLoading ? [] : data.filter(ele =>
         removeAccents(ele.name.toLowerCase()).includes(removeAccents(search.toLowerCase())) ||
