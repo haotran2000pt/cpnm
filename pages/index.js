@@ -48,9 +48,6 @@ export async function getServerSideProps({ }) {
 export default function Home({ saleProducts, newProducts, featuredProducts }) {
   return (
     <Layout noPadding aboveComponent={<HeroBanner />}>
-      <Link href="/checkout/success">
-        <a>Success</a>
-      </Link>
       {/* CATEGORIES */}
       <div className="space-x-10 flex mb-4 justify-center">
         {Object.keys(categories).map(catId => {
