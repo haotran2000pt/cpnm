@@ -140,7 +140,15 @@ const useProvideCart = () => {
             if (item.id !== product.id)
                 return item
             else {
-                if (authUser) {
+                if (item.quantity >= product.quantity) {
+                    store.addNotification({
+                        title: "Thất bại",
+                        message: "Số lượng đặt hàng vượt quá kho hàng!",
+                        type: "danger",
+                        insert: "top",
+                        container: "bottom-right",
+                    })
+                    return item
                 }
                 return {
                     id: item.id,
@@ -152,6 +160,7 @@ const useProvideCart = () => {
             localStorage.setItem('cart', JSON.stringify(newItems))
         } else {
             try {
+                console.log(newItems)
                 await cartMutation.mutateAsync({
                     cart: newItems,
                     updated_at: Date.now()
@@ -220,7 +229,7 @@ const useProvideCart = () => {
         } else {
             try {
                 await cartMutation.mutateAsync({
-                    cart: [],
+                    cart: newItems,
                     updated_at: Date.now()
                 })
             } catch (e) {
@@ -271,9 +280,8 @@ const useProvideCart = () => {
                 setItems(cart)
             } else {
                 const dbCart = queryClient.getQueryData('cartItem')
-                console.log(dbCart)
                 const localCart = JSON.parse(localStorage.getItem('cart'))
-                if (localCart) {
+                if (!_.isEmpty(localCart)) {
                     let newCart = _.keyBy(dbCart, 'id')
                     localCart.forEach(item => {
                         newCart[item.id] = { quantity: item.quantity }

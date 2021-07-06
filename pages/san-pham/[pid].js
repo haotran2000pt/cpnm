@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useMemo, useState } from "react";
 import ReactHtmlParser from 'react-html-parser';
-import { AiFillHeart, AiOutlineHeart } from "react-icons/ai";
+import { AiFillHeart, AiFillStar, AiOutlineHeart } from "react-icons/ai";
 import { store } from "react-notifications-component";
 import StarRatings from 'react-star-ratings';
 import { CSSTransition, SwitchTransition } from "react-transition-group";
@@ -21,7 +21,7 @@ import { UserRole } from "../../constants/user";
 import { useCart } from "../../contexts/cart";
 import Layout from "../../layouts/Layout";
 import { useAuth } from "../../lib/auth";
-import { getProduct, getProducts } from "../../lib/db";
+import { getProduct, getProducts, getUsers } from "../../lib/db";
 import firebase from "../../lib/firebase";
 import { firebaseAdmin } from '../../lib/firebase-admin';
 import useAddWishlist from "../../lib/query/wishlist/useAddWishlist";
@@ -33,6 +33,8 @@ import { Switch } from '@headlessui/react'
 import { useDispatch, useSelector } from "react-redux";
 import { addCompare, removeCompare } from "../../lib/redux/slices/compareSlice";
 import { useQueryClient } from "react-query";
+import useCreateRating from "../../lib/query/rating/useCreateRating";
+import TextareaAutosize from "react-textarea-autosize";
 
 SwiperCore.use([Thumbs]);
 
@@ -94,19 +96,30 @@ export async function getServerSideProps({ params }) {
 
     const ratingsSnapshot = await firebaseAdmin
         .firestore()
+        .collection('products')
+        .doc(product.id)
         .collection('ratings')
-        .where("productId", "==", product.id)
-        .orderBy('created_at', 'desc')
         .get()
 
-    const ratings = await Promise.all(ratingsSnapshot.docs.map(async (rating) => {
-        const data = rating.data()
-        const user = await firebaseAdmin.firestore().collection('users').doc(data.uid).get()
-        return {
-            ...rating.data(),
-            userFullName: user.data().name
-        }
-    }))
+    let ratings = []
+    if (!ratingsSnapshot.empty) {
+        const userList = await getUsers({
+            where: [{
+                field: firebase.firestore.FieldPath.documentId(),
+                op: "in",
+                value: ratingsSnapshot.docs.map(rating => rating.id)
+            }]
+        })
+
+        ratings = ratingsSnapshot.docs.map(rating => {
+            const data = rating.data()
+            const user = userList.find(user => user.id === rating.id)
+            return {
+                ...data,
+                userFullName: user.name
+            }
+        })
+    }
 
     return {
         props: {
@@ -128,14 +141,13 @@ export default function Product({ product, ratings, variants, related }) {
     const { data: wishlist } = useWishlist()
     const addWishlistMutate = useAddWishlist()
     const removeWishlistMutate = useRemoveWishlist()
+    const createRatingMutate = useCreateRating()
     const [loading, setLoading] = useState(false)
-    const [ratingLoading, setRatingLoading] = useState(false)
     const [rating, setRating] = useState(0)
     const [ratingContent, setRatingContent] = useState('')
     const [showRating, setShowRating] = useState(3)
     const [showRatingLoading, setShowRatingLoading] = useState(false)
     const [showContent, setShowContent] = useState(content.DESCRIPTION)
-    const router = useRouter()
     const queryClient = useQueryClient()
     const dispatch = useDispatch()
 
@@ -162,57 +174,36 @@ export default function Product({ product, ratings, variants, related }) {
 
     const onRating = async (e) => {
         e.preventDefault()
-        setRatingLoading(true)
-        try {
-            const rated = await firebase.firestore().collection('ratings').where('uid', '==', auth.id).get()
-
-            const batch = firebase.firestore().batch();
-            const productRef = firebase.firestore().collection('products').doc(product.id)
-
-            if (rated.empty) {
-                const ratingRef = firebase.firestore().collection('ratings').doc()
-                batch.set(ratingRef, {
-                    rating,
-                    content: ratingContent,
-                    uid: auth.id,
-                    productId: product.id,
-                    created_at: Date.now()
-                })
-                const productRating = await firebase.firestore().collection('ratings').where('productId', '==', product.id).get()
-                const newRating = (productRating.docs.reduce((acc, cur) => (acc + cur.data().rating), 0) + rating) / (productRating.docs.length + 1)
-                batch.update(productRef, { ratingCount: productRating.docs.length + 1, avgRating: _.isNaN(newRating) ? 0 : newRating })
-            } else {
-                const ratingRef = firebase.firestore().collection('ratings').doc(rated.docs[0].id)
-                batch.update(ratingRef, {
-                    rating,
-                    content: ratingContent,
-                    created_at: Date.now()
-                })
-                const productRating = await firebase.firestore()
-                    .collection('ratings')
-                    .where('productId', '==', product.id)
-                    .where('uid', '!=', auth.id)
-                    .get()
-                const newRating = (productRating.docs.reduce((acc, cur) => (acc + cur.data().rating), 0) + rating) / (productRating.docs.length + 1)
-                batch.update(productRef, { avgRating: _.isNaN(newRating) ? 0 : newRating })
-            }
-            batch.commit()
-
+        if (rating === 0) {
             store.addNotification({
-                title: "Thành công",
-                message: "Đánh giá sản phẩm thành công",
-                type: "success",
+                title: "Thất bại",
+                message: "Vui lòng chọn điểm đánh giá!",
+                type: "danger",
                 insert: "top",
                 container: "bottom-right",
             })
-            setRatingContent('')
-            setRating(0)
-            router.reload()
-        } catch (err) {
-            console.log(err.message)
-            alert(err.message)
+            return
         }
-        setRatingLoading(false)
+
+        const user = firebase.auth().currentUser
+        const currentMillis = Date.now()
+        const data = {
+            pid: product.id,
+            uid: user.uid,
+            token: await user.getIdToken(),
+            ratingDetails: product.ratingDetails,
+            rating,
+            content: ratingContent,
+            created_at: currentMillis,
+            updated_at: currentMillis
+        }
+        createRatingMutate.mutate(data, {
+            onSettled: () => {
+                setRating(0)
+                setRatingContent('')
+                createRatingMutate.reset()
+            }
+        })
     }
 
     const onWishlist = async (e) => {
@@ -263,7 +254,6 @@ export default function Product({ product, ratings, variants, related }) {
                                 starEmptyColor="rgba(209, 213, 219)"
                                 starDimension="20px"
                                 starSpacing="1px"
-                                isAggregateRating={true}
                             />
                         </div>
                         <span className="ml-2 text-sm">({product.ratingCount} đánh giá)</span>
@@ -408,40 +398,72 @@ export default function Product({ product, ratings, variants, related }) {
                             }
                             {showContent === content.REVIEW &&
                                 (<>
-                                    {!auth ? (
-                                        <div className="bg-gray-100 p-3 mb-2">
-                                            Đăng nhập để đánh giá sản phẩm!
-                                        </div>
-                                    ) : (
-                                        <form onSubmit={onRating} className="relative bg-gray-100 p-3 text-sm font-semibold space-y-2">
-                                            {ratingLoading &&
-                                                <div className="absolute inset-0 flex-center z-10 bg-dark bg-opacity-20">
-                                                    <LoadingIcon />
-                                                </div>
-                                            }
-                                            <div>
-                                                <div className="mb-2">Điểm số:</div>
+                                    <h2 className="pl-3 text-xl font-semibold">Đánh giá {product.name}</h2>
+                                    <div className="flex space-x-6 mb-2">
+                                        <div className="flex-1 p-3">
+                                            <div className="mb-4">
+                                                <span className="text-yellow-500 mr-2 align-middle text-lg font-bold">
+                                                    {product.avgRating}
+                                                </span>
                                                 <StarRatings
-                                                    rating={rating}
-                                                    starDimension="25px"
-                                                    starRatedColor="rgb(255,208,85)"
-                                                    starHoverColor="rgb(255,208,85)"
+                                                    rating={product.avgRating}
+                                                    starDimension="18px"
+                                                    starSpacing="2px"
+                                                    starRatedColor="rgb(245,158,11)"
+                                                    starHoverColor="rgb(245,158,11)"
                                                     starEmptyColor="rgb(209,209,209)"
-                                                    changeRating={setRating}
                                                 />
+                                                <span className="ml-2 text-sm font-medium text-gray-600 align-middle">{product.ratingCount} đánh giá</span>
                                             </div>
-                                            <div>
-                                                <div className="mb-2">Nhận xét:</div>
-                                                <textarea required rows={3} minLength={20}
-                                                    value={ratingContent} onChange={e => setRatingContent(e.target.value)}
-                                                    placeholder="Tối thiểu 20 kí tự"
-                                                    className="resize-none w-full shadow p-3 text-gray-600"></textarea>
-                                            </div>
-                                            <div className="w-24 ml-auto">
-                                                <Button>Đăng</Button>
-                                            </div>
-                                        </form>
-                                    )}
+                                            {_.range(5, 0).map(number => {
+                                                const ratingValueCount = product?.ratingDetails?.[number] ?? 0
+
+                                                return (
+                                                    <div key={`rating${number}value`} className="flex items-center mb-1">
+                                                        <span className="mr-1 text-sm leading-4 align-middle font-medium w-2 text-center">{number}</span> <AiFillStar className="translate-y-px" size={12} />
+                                                        <div className="w-[200px] h-1 bg-gray-300 mx-2 translate-y-px relative">
+                                                            <div style={{ width: (ratingValueCount / product.ratingCount) * 100 + "%" }} className="absolute bg-yellow-500 h-full"></div>
+                                                        </div>
+                                                        <span className="text-[13px] font-semibold">{ratingValueCount}</span>
+                                                    </div>
+                                                )
+                                            })}
+                                        </div>
+                                        <div className="flex-1">
+                                            {!auth ? (
+                                                <div className="bg-gray-100 p-3">
+                                                    Đăng nhập để đánh giá sản phẩm!
+                                                </div>
+                                            ) : (
+                                                <form onSubmit={onRating} className="relative bg-gray-100 p-3 text-sm font-semibold space-y-2">
+                                                    <div>
+                                                        <div className="mb-2">Điểm số:</div>
+                                                        <StarRatings
+                                                            rating={rating}
+                                                            starDimension="25px"
+                                                            starRatedColor="rgb(255,208,85)"
+                                                            starHoverColor="rgb(255,208,85)"
+                                                            starEmptyColor="rgb(209,209,209)"
+                                                            changeRating={createRatingMutate.isLoading ? null : setRating}
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <div className="mb-2">Nhận xét:</div>
+                                                        <TextareaAutosize required minRows={3} maxRows={8} minLength={20}
+                                                            value={ratingContent} onChange={e => setRatingContent(e.target.value)}
+                                                            placeholder="Tối thiểu 20 kí tự" disabled={createRatingMutate.isLoading}
+                                                            className="resize-none w-full shadow p-3 text-gray-600"
+                                                        />
+                                                    </div>
+                                                    <div className="w-24 ml-auto">
+                                                        <Button disable={createRatingMutate.isLoading}>
+                                                            {createRatingMutate.isLoading ? <LoadingIcon /> : "Đăng"}
+                                                        </Button>
+                                                    </div>
+                                                </form>
+                                            )}
+                                        </div>
+                                    </div>
                                     <div className="divide-y-2">
                                         {ratings.length === 0 ? (
                                             <div className="h-40 flex-center font-medium text-xl">
