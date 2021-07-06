@@ -23,7 +23,7 @@ export default function SuccessPage({ headers }) {
     params["vnp_ReturnUrl"] = "https://cpnm.vercel.app/checkout/success"
     params["vnp_TxnRef"] = "SD92MEO92"
     params["vnp_SecureHashType"] = "SHA256"
-    params["vnp_Command"] = "081f2e38cd5975e5979b982667b62df4c2f6601efd68fe5b87c0caef2d512cd7"
+    params["vnp_SecureHash"] = "081f2e38cd5975e5979b982667b62df4c2f6601efd68fe5b87c0caef2d512cd7"
 
     const requestParams = qs.stringify(params)
 
