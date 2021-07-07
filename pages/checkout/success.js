@@ -43,7 +43,6 @@ export default function SuccessPage({ headers }) {
     params["vnp_OrderInfo"] = "Nap tien cho thue bao 0123456789. So tien 100,000 VND"
     params["vnp_ReturnUrl"] = "http://localhost:3000/checkout/success"
     params["vnp_TxnRef"] = dateFormat(new Date(), "HHmmss");
-    params["vnp_SecureHashType"] = "SHA256"
 
     params = sortObject(params)
 
@@ -51,6 +50,7 @@ export default function SuccessPage({ headers }) {
     console.log(signData)
     const secureHash = sha256(signData)
 
+    params["vnp_SecureHashType"] = "SHA256"
     params["vnp_SecureHash"] = secureHash
     const url = "?" + qs.stringify(params, { encode: false })
     console.log(url)

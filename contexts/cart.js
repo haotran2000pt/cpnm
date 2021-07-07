@@ -279,7 +279,7 @@ const useProvideCart = () => {
                 const cart = JSON.parse(localStorage.getItem('cart'))
                 setItems(cart)
             } else {
-                const dbCart = queryClient.getQueryData('cartItem')
+                const dbCart = queryClient.getQueryData('cartItem') ?? []
                 const localCart = JSON.parse(localStorage.getItem('cart'))
                 if (!_.isEmpty(localCart)) {
                     let newCart = _.keyBy(dbCart, 'id')

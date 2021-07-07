@@ -20,6 +20,7 @@ import Button from '../../components/common/Button'
 import { LoadingPage } from '../../components/common/LoadingPage'
 import classNames from 'classnames'
 import { FaPaypal } from 'react-icons/fa'
+import { createVnPayUrl } from '../../utils/vnPay'
 
 const SectionContainer = ({ children }) => {
     return (
@@ -60,7 +61,14 @@ const CheckoutSuccessPage = () => {
     )
 }
 
-export default function Checkout() {
+export async function getServerSideProps({ req }) {
+    const ip = req.headers['x-real-ip'] || req.connection.remoteAddress
+    return {
+        props: { ip }
+    }
+}
+
+export default function Checkout({ ip }) {
     const router = useRouter()
     const [success, setSuccess] = useState(false)
     const [loading, setLoading] = useState(false)
@@ -103,19 +111,30 @@ export default function Checkout() {
                 }],
                 created_at: currentMillis
             }
-            firebase.auth().currentUser.getIdToken()
-            const order = await firebase.firestore().collection('orders').add(fullData)
-            store.addNotification({
-                title: "Thành công",
-                message: "Đặt hàng thành công",
-                type: "success",
-                insert: "top",
-                container: "bottom-right",
-            })
-            router.push({
-                pathname: 'kiem-tra-don-hang',
-                query: { id: order.id, },
-            }).then(() => { clear() })
+            const newOrderRef = firebase.firestore().collection('orders').doc()
+
+            const orderId = newOrderRef.id
+
+            switch (payment) {
+                case PaymentMethod.COD:
+                    await newOrderRef.set(fullData)
+                    store.addNotification({
+                        title: "Thành công",
+                        message: "Đặt hàng thành công",
+                        type: "success",
+                        insert: "top",
+                        container: "bottom-right",
+                    })
+                    break;
+                case PaymentMethod.BANK:
+                    const { url, signedData } = createVnPayUrl({
+                        amount: cartPrice,
+                        ip,
+                        orderId
+                    })
+                    window.location.href = url
+                    break;
+            }
         }
         catch (err) {
             store.addNotification({
@@ -128,7 +147,7 @@ export default function Checkout() {
             setLoading(false)
         }
     }
-    
+
     const checkKeyDown = (e) => {
         if (e.code === 'Enter') e.preventDefault();
     };
@@ -203,7 +222,7 @@ export default function Checkout() {
                                     <div><RiHandCoinLine size={36} /></div>
                                     <div className="font-semibold">Tiền mặt</div>
                                 </button>
-                                <button
+                                {/* <button
                                     type="button"
                                     onClick={() => setPayment(PaymentMethod.PAYPAL)}
                                     className={classNames("h-32 w-24 bg-white flex flex-col justify-center items-center select-none border-2 transition-all duration-100", {
@@ -212,7 +231,7 @@ export default function Checkout() {
                                     })}>
                                     <div><FaPaypal size={36} /></div>
                                     <div className="font-semibold">Paypal</div>
-                                </button>
+                                </button> */}
                                 <button
                                     type="button"
                                     onClick={() => setPayment(PaymentMethod.BANK)}

@@ -38,7 +38,7 @@ import TextareaAutosize from "react-textarea-autosize";
 
 SwiperCore.use([Thumbs]);
 
-export async function getServerSideProps({ params }) {
+export async function getServerSideProps({ params, req }) {
     const product = await getProduct(params.pid)
 
     if (!product) {
@@ -120,7 +120,6 @@ export async function getServerSideProps({ params }) {
             }
         })
     }
-
     return {
         props: {
             product, ratings, variants, related
