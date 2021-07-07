@@ -34,7 +34,12 @@ const handler = async (req, res) => {
                                     bankCode: vnp_Params['vnp_BankCode'],
                                     bankTranNo: vnp_Params['vnp_BankTranNo'],
                                     payDate: vnp_Params['vnp_PayDate']
-                                }
+                                },
+                                history: [{
+                                    created_at: Date.now(),
+                                    status: "Thanh toán thành công"
+                                },
+                                ...order.history]
                             })
                             return res.status(200).json({ RspCode: '00', Message: 'Giao dịch thành công' })
                         } else {
@@ -46,7 +51,13 @@ const handler = async (req, res) => {
                                     bankTranNo: vnp_Params['vnp_BankTranNo'],
                                     payDate: vnp_Params['vnp_PayDate'],
                                     errorCode: rspCode
-                                }
+                                },
+                                status: "Đã hủy",
+                                history: [{
+                                    created_at: Date.now(),
+                                    status: "Đơn hàng bị hủy do thanh toán thất bại"
+                                },
+                                ...order.history]
                             })
                             return res.status(200).json({ RspCode: '99', Message: 'Giao dịch thất bại' })
                         }
