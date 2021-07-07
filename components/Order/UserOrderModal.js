@@ -11,6 +11,7 @@ import { calcSingleItemPrice } from "../../utils/priceCalc"
 import BetterReactModal from "../common/BetterReactModal"
 import Button from '../common/Button'
 import LoadingIcon from "../common/LoadingIcon"
+import { PaymentMethod } from '../../pages/checkout/index'
 
 const Left = ({ children }) => <div className="w-32 flex-shrink-0 font-semibold">{children}</div>
 const Right = ({ children }) => <div className="flex-auto whitespace-pre-line">{children}</div>
@@ -107,6 +108,53 @@ const UserOrderModal = ({ order, onClose }) => {
                         ))}
                     </div>
                 </div>
+            </div>
+
+            {/* Thong tin thanh toan */}
+            <div className="mx-8 my-2 space-y-2 pb-2 text-sm border-b">
+                <div className="text-lg">Thông tin thanh toán</div>
+                <div className="flex">
+                    <div className="w-52 flex-shrink-0 font-semibold">Phương thức thanh toán:</div>
+                    <Right>
+                        {order.payment === PaymentMethod.COD || _.isNil(order.payment) && "Tiền mặt"}
+                        {order.payment === PaymentMethod.BANK && "Ngân hàng"}
+                    </Right>
+                </div>
+                {order.paymentInfo && (
+                    <>
+                        <div className="flex">
+                            <div className="w-52 flex-shrink-0 font-semibold">Tình trạng thanh toán:</div>
+                            <Right>
+                                {order.paymentInfo.status === "pending" && "Đang chờ xử lý"}
+                                {order.paymentInfo.status === "success" && <span className="text-green-600 font-semibold">Thành công</span>}
+                                {order.paymentInfo.status === "failed" && <span className="text-red-500 font-semibold">Thất bại</span>}
+                            </Right>
+                        </div>
+                        <div className="flex">
+                            <div className="w-52 flex-shrink-0 font-semibold">Phương thức thanh toán:</div>
+                            <Right>
+                                {order.payment === PaymentMethod.COD || _.isNil(order.payment) && "Tiền mặt"}
+                                {order.payment === PaymentMethod.BANK && "Ngân hàng"}
+                            </Right>
+                        </div>
+                        <div className="flex">
+                            <div className="w-52 flex-shrink-0 font-semibold">Phương thức thanh toán:</div>
+                            <Right>
+                                {order.payment === PaymentMethod.COD || _.isNil(order.payment) && "Tiền mặt"}
+                                {order.payment === PaymentMethod.BANK && "Ngân hàng"}
+                            </Right>
+                        </div>
+                        <div className="flex">
+                            <div className="w-52 flex-shrink-0 font-semibold">Phương thức thanh toán:</div>
+                            <Right>
+                                {order.payment === PaymentMethod.COD || _.isNil(order.payment) && "Tiền mặt"}
+                                {order.payment === PaymentMethod.BANK && "Ngân hàng"}
+                            </Right>
+                        </div>
+                    </>
+                )}
+            </div>
+            <div className="mx-8 mb-3">
                 <div className="p-3 bg-gray-100">
                     <table className="w-full">
                         <tr>

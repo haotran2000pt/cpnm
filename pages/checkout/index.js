@@ -47,7 +47,7 @@ const schema = yup.object().shape({
     street: yup.string().required()
 })
 
-const PaymentMethod = {
+export const PaymentMethod = {
     COD: 'cod',
     PAYPAL: 'paypal',
     BANK: 'bank'
