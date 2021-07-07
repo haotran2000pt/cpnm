@@ -39,7 +39,7 @@ export const createVnPayUrl = (data) => {
     params["vnp_IpAddr"] = ip
     params["vnp_Locale"] = "vn"
     params["vnp_OrderInfo"] = "Thanh toan don hang CNPM thoi gian " + dateFormat(new Date(), "yyyy-mm-dd HH:mm:ss")
-    params["vnp_ReturnUrl"] = "http://localhost:3000/checkout/complete"
+    params["vnp_ReturnUrl"] = "http://cpnm.vercel.app/checkout/complete"
     params["vnp_TxnRef"] = orderId;
 
     params = sortObject(params)
