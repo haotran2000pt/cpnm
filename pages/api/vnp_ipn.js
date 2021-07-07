@@ -26,7 +26,7 @@ const handler = async (req, res) => {
                 const order = orderData.data()
                 if (order.totalPrice === parseInt(vnp_Params['vnp_Amount']) / 100) {
                     if (order.paymentInfo.status === 'pending') {
-                        if (rspCode == "0") {
+                        if (rspCode == "00") {
                             await orderRef.update({
                                 paymentInfo: {
                                     status: "success",
