@@ -117,7 +117,10 @@ export default function Checkout({ ip }) {
 
             switch (payment) {
                 case PaymentMethod.COD:
-                    await newOrderRef.set(fullData)
+                    await newOrderRef.set({
+                        ...fullData,
+                        payment
+                    })
                     store.addNotification({
                         title: "Thành công",
                         message: "Đặt hàng thành công",
@@ -127,7 +130,14 @@ export default function Checkout({ ip }) {
                     })
                     break;
                 case PaymentMethod.BANK:
-                    const { url, signedData } = createVnPayUrl({
+                    await newOrderRef.set({
+                        ...fullData,
+                        payment,
+                        paymentInfo: {
+                            status: "pending"
+                        }
+                    })
+                    const url = createVnPayUrl({
                         amount: cartPrice,
                         ip,
                         orderId

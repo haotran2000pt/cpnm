@@ -51,5 +51,5 @@ export const createVnPayUrl = (data) => {
     params["vnp_SecureHash"] = secureHash
     const url = "http://sandbox.vnpayment.vn/paymentv2/vpcpay.html?" + qs.stringify(params, { encode: false })
 
-    return { signData, url }
+    return url
 }
