@@ -33,14 +33,14 @@ export const createVnPayUrl = (data) => {
     params["vnp_Version"] = "2"
     params["vnp_Command"] = "pay"
     params["vnp_TmnCode"] = vnPayConfig.tmnCode
-    params["vnp_Amount"] = amount
+    params["vnp_Amount"] = amount * 100
     params["vnp_CreateDate"] = dateFormat(new Date(), "yyyymmddHHmmss");
     params["vnp_CurrCode"] = "VND"
     params["vnp_IpAddr"] = ip
     params["vnp_Locale"] = "vn"
     params["vnp_OrderInfo"] = "Thanh toan don hang CNPM thoi gian " + dateFormat(new Date(), "yyyy-mm-dd HH:mm:ss")
     params["vnp_ReturnUrl"] = "http://localhost:3000/checkout/success"
-    params["vnp_TxnRef"] = dateFormat(new Date(), "HHmmss");
+    params["vnp_TxnRef"] = orderId;
 
     params = sortObject(params)
 
