@@ -1,6 +1,6 @@
 import classNames from "classnames";
 import moment from "moment";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AiOutlineSearch } from "react-icons/ai";
 import OrderModal from "../../components/Admin/Order/OrderModal";
 import BetterReactModal from "../../components/common/BetterReactModal";
@@ -21,7 +21,8 @@ export default function Orders() {
     const [search, setSearch] = useState('')
     const [searchStatus, setSearchStatus] = useState('')
     const [order, setOrder] = useState(null)
-    const filtered = isFetching ? [] : data.filter(ele => {
+    const filtered = !data ? [] : data.filter(ele => {
+        console.log(ele)
         return (searchTwoString(ele.name, search) ||
             searchTwoString(ele.id, search) ||
             ele.phone.includes(search)) &&
@@ -52,8 +53,8 @@ export default function Orders() {
                             placeholder="Tìm kiếm theo ID, tên khách hàng, số điện thoại" />
                     </form>
                     <div className="flex text-sm space-x-4">
-                        {searchStatuses.map(status => (
-                            <button key={`${status}button`}
+                        {searchStatuses.map((status, index) => (
+                            <button key={`${status}${index}button`}
                                 onClick={() => setSearchStatus(status)}
                                 className={classNames("relative inline-block px-3 h-8 rounded-full font-semibold", {
                                     'bg-blue-500 text-white': searchStatus === status,
@@ -79,8 +80,8 @@ export default function Orders() {
                         </thead>
                         <tbody>
                             {!isFetching &&
-                                filtered.map(row => (
-                                    <tr onClick={() => setOrder(row)}
+                                filtered.map((row, index) => (
+                                    <tr key={index + "orderRow"} onClick={() => setOrder(row)}
                                         className="text-sm hover:bg-gray-100 cursor-pointer">
                                         <td className="py-2 pl-2">{row.id}</td>
                                         <td>{row.name}</td>

@@ -31,14 +31,14 @@ export const productSchema = yup.object().shape({
 })
 
 export default function Products() {
-    const { isLoading, data } = useProducts({
+    const { isFetching: isLoading, data } = useProducts({
         order: [{
             field: "created_at",
             direct: "desc"
         }]
     })
     const [search, setSearch] = useState('')
-    const filtered = isLoading ? [] : data.filter(ele =>
+    const filtered = !data ? [] : data.filter(ele =>
         removeAccents(ele.name.toLowerCase()).includes(removeAccents(search.toLowerCase())) ||
         ele.id.toLowerCase().includes(search.toLowerCase()))
 
@@ -77,8 +77,8 @@ export default function Products() {
                         </thead>
                         <tbody>
                             {!isLoading &&
-                                filtered.map(row => (
-                                    <Link key={row.id} href={"/admin/products/" + row.slug}>
+                                filtered.map((row, index) => (
+                                    <Link key={row.id + index + "product"} href={"/admin/products/" + row.slug}>
                                         <tr className="text-sm hover:bg-gray-100 cursor-pointer">
                                             <td className="py-2 pl-2">{row.id}</td>
                                             <td>{row.name}</td>
