@@ -5,6 +5,7 @@ import { firebaseAdmin } from '../../lib/firebase-admin';
 
 const handler = async (req, res) => {
     if (req.method === 'GET') {
+        console.log("VNP_IPN_STARTING")
         var vnp_Params = req.query;
         var secureHash = vnp_Params['vnp_SecureHash'];
 
@@ -64,7 +65,7 @@ const handler = async (req, res) => {
                             return res.status(200).json({ RspCode: '99', Message: 'Giao dịch thất bại' })
                         }
                     } else {
-                        return res.status(200).json({ RspCode: '01', Message: 'Giao dịch đã được xác nhận' })
+                        return res.status(200).json({ RspCode: '01', Message: 'Giao dịch đã hoàn thành' })
                     }
                 } else {
                     return res.status(200).json({ RspCode: '04', Message: 'Sai số tiền' })

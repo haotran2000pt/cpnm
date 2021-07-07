@@ -21,6 +21,7 @@ import { LoadingPage } from '../../components/common/LoadingPage'
 import classNames from 'classnames'
 import { FaPaypal } from 'react-icons/fa'
 import { createVnPayUrl } from '../../utils/vnPay'
+import CheckoutCompletePage from './complete'
 
 const SectionContainer = ({ children }) => {
     return (
@@ -53,14 +54,6 @@ export const PaymentMethod = {
     BANK: 'bank'
 }
 
-const CheckoutSuccessPage = () => {
-    return (
-        <div>
-
-        </div>
-    )
-}
-
 export async function getServerSideProps({ req }) {
     const ip = req.headers['x-real-ip'] || req.connection.remoteAddress
     return {
@@ -70,7 +63,7 @@ export async function getServerSideProps({ req }) {
 
 export default function Checkout({ ip }) {
     const router = useRouter()
-    const [success, setSuccess] = useState(false)
+    const [success, setSuccess] = useState(null)
     const [loading, setLoading] = useState(false)
     const [payment, setPayment] = useState(PaymentMethod.COD)
     const { items, increase, decrease, remove, clear, isLoading } = useCart()
@@ -128,23 +121,27 @@ export default function Checkout({ ip }) {
                         insert: "top",
                         container: "bottom-right",
                     })
+                    router.push('/checkout', "/checkout/complete", { shallow: true })
+                    setSuccess({ ...fullData, payment, items, id: orderId })
                     break;
                 case PaymentMethod.BANK:
-                    await newOrderRef.set({
-                        ...fullData,
-                        payment,
-                        paymentInfo: {
-                            status: "pending"
-                        }
-                    })
-                    const url = createVnPayUrl({
+                    const { url, signData, stringifyParams } = createVnPayUrl({
                         amount: cartPrice,
                         ip,
                         orderId
                     })
+                    await newOrderRef.set({
+                        ...fullData,
+                        payment,
+                        paymentInfo: {
+                            status: "pending",
+                            signData, stringifyParams
+                        }
+                    })
                     window.location.href = url
                     break;
             }
+            clear()
         }
         catch (err) {
             store.addNotification({
@@ -163,7 +160,7 @@ export default function Checkout({ ip }) {
     };
 
     return (
-        success ? <CheckoutSuccessPage />
+        success ? <CheckoutCompletePage payment={PaymentMethod.COD} order={success} status="success" />
             :
             <Layout>
                 <h1 className="font-bold text-2xl mb-4">Giỏ hàng của bạn</h1>

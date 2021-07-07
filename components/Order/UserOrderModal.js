@@ -6,21 +6,33 @@ import { AiOutlineClose } from "react-icons/ai"
 import { GoAlert } from "react-icons/go"
 import { store } from "react-notifications-component"
 import firebase from '../../lib/firebase'
+import { PaymentMethod } from '../../pages/checkout/index'
 import numberWithCommas from "../../utils/numberWithCommas"
 import { calcSingleItemPrice } from "../../utils/priceCalc"
+import { createVnPayUrl } from "../../utils/vnPay"
 import BetterReactModal from "../common/BetterReactModal"
 import Button from '../common/Button'
 import LoadingIcon from "../common/LoadingIcon"
-import { PaymentMethod } from '../../pages/checkout/index'
 
 const Left = ({ children }) => <div className="w-32 flex-shrink-0 font-semibold">{children}</div>
 const Right = ({ children }) => <div className="flex-auto whitespace-pre-line">{children}</div>
 
-const UserOrderModal = ({ order, onClose }) => {
+const UserOrderModal = ({ order, onClose, ip }) => {
     const [cancel, setCancel] = useState(false)
     const [cancelLoading, setCancelLoading] = useState(false)
     const router = useRouter()
     if (!order) return null
+
+    const onPay = async () => {
+        const paymentInfo = order.paymentInfo
+
+        const { url } = createVnPayUrl({
+            orderId: order.id,
+            ip,
+            amount: order.totalPrice
+        })
+        router.replace(url)
+    }
 
     const onCancel = async () => {
         if (cancelLoading) return
@@ -98,11 +110,11 @@ const UserOrderModal = ({ order, onClose }) => {
                     <div className="flex-1 space-y-2">
                         {order.history.map((history, index) => (
                             <div className="flex items-center font-medium">
-                                <div className={classNames('w-2 h-2 rounded-full mr-2', {
+                                <div className={classNames('w-2 h-2 rounded-full mr-2 flex-shrink-0', {
                                     'bg-gray-700': index === 0,
                                     'bg-gray-200': index !== 0
                                 })} />
-                                <div className="w-32">{moment(history.created_at).format('HH:mm DD-MM-YYYY')}</div>
+                                <div className="w-32 flex-shrink-0">{moment(history.created_at).format('HH:mm DD-MM-YYYY')}</div>
                                 <div>{history.status}</div>
                             </div>
                         ))}
@@ -130,27 +142,28 @@ const UserOrderModal = ({ order, onClose }) => {
                                 {order.paymentInfo.status === "failed" && <span className="text-red-500 font-semibold">Thất bại</span>}
                             </Right>
                         </div>
-                        <div className="flex">
-                            <div className="w-52 flex-shrink-0 font-semibold">Phương thức thanh toán:</div>
-                            <Right>
-                                {order.payment === PaymentMethod.COD || _.isNil(order.payment) && "Tiền mặt"}
-                                {order.payment === PaymentMethod.BANK && "Ngân hàng"}
-                            </Right>
-                        </div>
-                        <div className="flex">
-                            <div className="w-52 flex-shrink-0 font-semibold">Phương thức thanh toán:</div>
-                            <Right>
-                                {order.payment === PaymentMethod.COD || _.isNil(order.payment) && "Tiền mặt"}
-                                {order.payment === PaymentMethod.BANK && "Ngân hàng"}
-                            </Right>
-                        </div>
-                        <div className="flex">
-                            <div className="w-52 flex-shrink-0 font-semibold">Phương thức thanh toán:</div>
-                            <Right>
-                                {order.payment === PaymentMethod.COD || _.isNil(order.payment) && "Tiền mặt"}
-                                {order.payment === PaymentMethod.BANK && "Ngân hàng"}
-                            </Right>
-                        </div>
+                        {order.paymentInfo.status !== "pending" &&
+                            <>
+                                <div className="flex">
+                                    <div className="w-52 flex-shrink-0 font-semibold">Mã đơn VnPay:</div>
+                                    <Right>
+                                        {order.paymentInfo.transactionId}
+                                    </Right>
+                                </div>
+                                <div className="flex">
+                                    <div className="w-52 flex-shrink-0 font-semibold">Mã ngân hàng:</div>
+                                    <Right>
+                                        {order.paymentInfo.bankCode}
+                                    </Right>
+                                </div>
+                                <div className="flex">
+                                    <div className="w-52 flex-shrink-0 font-semibold">Mã đơn ngân hàng:</div>
+                                    <Right>
+                                        {order.paymentInfo.bankTranNo}
+                                    </Right>
+                                </div>
+                            </>
+                        }
                     </>
                 )}
             </div>
@@ -192,6 +205,13 @@ const UserOrderModal = ({ order, onClose }) => {
                 <button onClick={onClose} className="p-2 font-bold text-gray-500">
                     Đóng
                 </button>
+                {order.paymentInfo?.status === 'pending' &&
+                    <div className="w-24">
+                        <Button onClick={onPay}>
+                            Thanh toán
+                        </Button>
+                    </div>
+                }
                 {order.status === 'Chờ xác nhận' &&
                     <div className="w-24">
                         <Button onClick={() => setCancel(true)}>

@@ -49,7 +49,8 @@ export const createVnPayUrl = (data) => {
 
     params["vnp_SecureHashType"] = "SHA256"
     params["vnp_SecureHash"] = secureHash
-    const url = "http://sandbox.vnpayment.vn/paymentv2/vpcpay.html?" + qs.stringify(params, { encode: false })
+    const stringifyParams = qs.stringify(params, { encode: false })
+    const url = "http://sandbox.vnpayment.vn/paymentv2/vpcpay.html?" + stringifyParams
 
-    return url
+    return { url, signData, stringifyParams }
 }

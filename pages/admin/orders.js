@@ -15,7 +15,9 @@ const searchTwoString = (text, search) => removeAccents(text).toLowerCase().incl
 const searchStatuses = ['', 'Chờ xác nhận', 'Đã xác nhận', 'Đang giao hàng', 'Đã giao', 'Đã hủy']
 
 export default function Orders() {
-    const { isFetching, data, refetch } = useOrders({})
+    const { isFetching, data, refetch } = useOrders({
+        order: [{ field: 'created_at', direct: 'desc' }]
+    })
     const [search, setSearch] = useState('')
     const [searchStatus, setSearchStatus] = useState('')
     const [order, setOrder] = useState(null)

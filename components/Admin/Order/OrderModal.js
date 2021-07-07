@@ -12,6 +12,7 @@ import { productStatus } from "../../../constants/product"
 import _ from "lodash"
 import { useAuth } from "../../../lib/auth"
 import { UserRole } from "../../../constants/user"
+import { PaymentMethod } from "../../../pages/checkout"
 
 const Left = ({ children }) => <div className="w-28 flex-shrink-0 font-semibold text-blue-800">{children}</div>
 const Right = ({ children }) => <div className="flex-auto whitespace-pre-line">{children}</div>
@@ -171,16 +172,63 @@ const OrderModal = ({ order, onClose, refetch }) => {
                     <div className="w-3/5 flex-shrink-0 space-y-2">
                         {order.history.map((history, index) => (
                             <div className="flex items-center font-medium">
-                                <div className={classNames('w-2 h-2 rounded-full mr-2', {
+                                <div className={classNames('w-2 h-2 rounded-full mr-2 flex-shrink-0', {
                                     'bg-blue-500': index === 0,
                                     'bg-gray-200': index !== 0
                                 })} />
-                                <div className="w-32">{moment(history.created_at).format('HH:mm DD-MM-YYYY')}</div>
+                                <div className="w-32 flex-shrink-0">{moment(history.created_at).format('HH:mm DD-MM-YYYY')}</div>
                                 <div className={index === 0 ? "text-blue-600" : ""}>{history.status}</div>
                             </div>
                         ))}
                     </div>
                 </div>
+            </div>
+            {/* Thong tin thanh toan */}
+            <div className="mx-8 my-2 space-y-2 pb-2 text-sm border-b">
+                <div className="text-lg">Thông tin thanh toán</div>
+                <div className="flex">
+                    <div className="w-52 flex-shrink-0 font-semibold text-blue-800">Phương thức thanh toán:</div>
+                    <Right>
+                        {order.payment === PaymentMethod.COD || _.isNil(order.payment) && "Tiền mặt"}
+                        {order.payment === PaymentMethod.BANK && "Ngân hàng"}
+                    </Right>
+                </div>
+                {order.paymentInfo && (
+                    <>
+                        <div className="flex">
+                            <div className="w-52 flex-shrink-0 font-semibold text-blue-800">Tình trạng thanh toán:</div>
+                            <Right>
+                                {order.paymentInfo.status === "pending" && "Đang chờ xử lý"}
+                                {order.paymentInfo.status === "success" && <span className="text-green-600 font-semibold">Thành công</span>}
+                                {order.paymentInfo.status === "failed" && <span className="text-red-500 font-semibold">Thất bại</span>}
+                            </Right>
+                        </div>
+                        {order.paymentInfo.status !== "pending" &&
+                            <>
+                                <div className="flex">
+                                    <div className="w-52 flex-shrink-0 font-semibold text-blue-800">Mã đơn VnPay:</div>
+                                    <Right>
+                                        {order.paymentInfo.transactionId}
+                                    </Right>
+                                </div>
+                                <div className="flex">
+                                    <div className="w-52 flex-shrink-0 font-semibold text-blue-800">Mã ngân hàng:</div>
+                                    <Right>
+                                        {order.paymentInfo.bankCode}
+                                    </Right>
+                                </div>
+                                <div className="flex">
+                                    <div className="w-52 flex-shrink-0 font-semibold text-blue-800">Mã đơn ngân hàng:</div>
+                                    <Right>
+                                        {order.paymentInfo.bankTranNo}
+                                    </Right>
+                                </div>
+                            </>
+                        }
+                    </>
+                )}
+            </div>
+            <div className="mx-8 mb-3">
                 <div className="p-3 bg-gray-100">
                     <table className="w-full">
                         <tr>

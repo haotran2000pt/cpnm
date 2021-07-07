@@ -9,7 +9,14 @@ import { useAuth } from '../../lib/auth'
 import useOrders from '../../lib/query/useOrders'
 import numberWithCommas from '../../utils/numberWithCommas'
 
-export default function UserHistory() {
+export async function getServerSideProps({ req }) {
+    const ip = req.headers['x-real-ip'] || req.connection.remoteAddress
+    return {
+        props: { ip }
+    }
+}
+
+export default function UserHistory({ ip }) {
     const [showOrder, setShowOrder] = useState(null)
     const { authUser: auth } = useAuth()
     const { data: orders, isLoading } = useOrders({
@@ -17,9 +24,13 @@ export default function UserHistory() {
             field: "uid",
             op: "==",
             value: auth.uid
+        }],
+        order: [{
+            field: "created_at",
+            direct: "desc"
         }]
     })
-    
+
     return (
         <UserLayout>
             <div className="border border-gray-400 shadow-md p-2">
@@ -78,7 +89,7 @@ export default function UserHistory() {
                     onClose={() => setShowOrder(null)}
                     preventClose={true}
                 >
-                    <UserOrderModal onClose={() => setShowOrder(null)} order={showOrder} />
+                    <UserOrderModal ip={ip} onClose={() => setShowOrder(null)} order={showOrder} />
                 </BetterReactModal>
             </div>
         </UserLayout>
