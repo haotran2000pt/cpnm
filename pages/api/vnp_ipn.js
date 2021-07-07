@@ -49,8 +49,8 @@ const handler = async (req, res) => {
                                 paymentInfo: {
                                     status: "failed",
                                     transactionId: vnp_Params['vnp_TransactionNo'],
-                                    bankCode: vnp_Params['vnp_BankCode'],
-                                    bankTranNo: vnp_Params['vnp_BankTranNo'],
+                                    bankCode: vnp_Params['vnp_BankCode'] ?? '',
+                                    bankTranNo: vnp_Params['vnp_BankTranNo'] ?? 0,
                                     payDate: vnp_Params['vnp_PayDate'],
                                     errorCode: rspCode
                                 },
