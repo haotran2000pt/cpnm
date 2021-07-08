@@ -85,7 +85,7 @@ export default function CreateProduct({ loading, images, setImages, onSubmit, pr
     };
 
     return (
-        <form onSubmit={onSubmit} onKeyDown={(e) => checkKeyDown(e)}>
+        <form onSubmit={onSubmit}>
             <fieldset disabled={authUser.role === UserRole.MODERATOR} className="flex space-x-8">
                 <div className="flex-1">
                     <Scroll.Element name="basic">
